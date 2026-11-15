@@ -1,0 +1,2 @@
+# Keep CSV bytes identical on every OS so the SHA-256 in statistics.json still matches.
+*.csv -text

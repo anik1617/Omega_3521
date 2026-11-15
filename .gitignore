@@ -219,6 +219,8 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Local review data
-data/raw/
-data/processed/
+# Local review data (the full Kaggle download stays local; the team's seed-46 files are shared)
+data/raw/*
+!data/raw/group_sample_seed46.csv
+data/processed/*
+!data/processed/group_seed46_clean.csv

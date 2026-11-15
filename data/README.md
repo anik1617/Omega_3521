@@ -2,7 +2,14 @@
 
 Source: https://www.kaggle.com/datasets/snap/amazon-fine-food-reviews
 
-Run from the repository root with Python 3.11 or newer:
+The team dataset is already in the repo, so a fresh clone is enough to start:
+
+- `data/raw/group_sample_seed46.csv`: the 50,000-review sample (seed 46).
+- `data/processed/group_seed46_clean.csv`: three-class labels, repeats removed (46,344 rows).
+
+The full Kaggle `Reviews.csv` (301 MB) is too large for GitHub and stays local. You only
+need it to rebuild the files above. To rebuild them, run from the repository root with
+Python 3.11 or newer:
 
 ```powershell
 pip install -r requirements.txt
@@ -53,4 +60,6 @@ collapsing whitespace and ignoring case (`dedup_key()` in `scripts/prepare_sampl
 Use the same key when creating train/validation/test splits so a repeated review
 cannot appear in more than one split.
 
-Do not commit raw data, processed CSVs, or downloaded archives.
+Only the two seed-46 CSVs above are committed. Do not commit `Reviews.csv`, the zip,
+or other generated CSVs. `.gitattributes` keeps CSV bytes unchanged across operating
+systems so the hashes above still match after checkout.

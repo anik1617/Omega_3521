@@ -14,9 +14,12 @@ Streamlit application. Models and the application are not implemented yet.
 | Lianyu Yang | App Engineer |
 | Shilin | ML Engineer |
 
-## Local data setup
+## Data
 
-Python 3.11+.
+The team dataset is committed: `data/raw/group_sample_seed46.csv` (50,000 reviews) and
+`data/processed/group_seed46_clean.csv` (46,344 reviews with a `Sentiment` column).
+Load the clean file directly. The commands below only rebuild it from the full
+Kaggle download. Python 3.11+.
 
 ```powershell
 pip install -r requirements.txt
