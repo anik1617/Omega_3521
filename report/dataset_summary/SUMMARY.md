@@ -38,7 +38,7 @@
 | Positive | 36,113 | 77.92% |
 | Total | 46,344 | |
 
-Average `Text` length after cleaning: 79.81 words. Always predicting positive would score 77.92% accuracy on the cleaned data, so report macro-F1 and per-class scores alongside accuracy. Train/validation/test splits have not been created yet.
+Average `Text` length after cleaning: 79.81 words. Always predicting positive would score 77.92% accuracy on the cleaned data, so report macro-F1 and per-class scores alongside accuracy. The shared 65/15/20 stratified split (seed 42) is in `data/splits/split_seed42.csv`: 30,123 train, 6,952 validation, and 9,269 test reviews, each about 77.9% positive, 14.8% negative, and 7.3% neutral. The majority-class baseline on the test set is 7,223 / 9,269 = 77.93% accuracy.
 
 ## Files
 
