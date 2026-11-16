@@ -35,8 +35,8 @@ neutral (3 stars), positive (4–5 stars). See [data setup instructions](data/RE
 
 ## Train / validation / test split
 
-Everyone uses one shared split, committed in `data/splits/split_seed42.csv` (review
-`Id` and `split`). It is stratified by sentiment, 65/15/20, with seed 42:
+Everyone uses one shared split, committed in `data/splits/split_seed46.csv` (review
+`Id` and `split`). It is stratified by sentiment, 65/15/20, with seed 46 (our group seed, same as the sample):
 
 | Split | Negative | Neutral | Positive | Total |
 | --- | ---: | ---: | ---: | ---: |

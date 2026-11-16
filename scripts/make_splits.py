@@ -1,9 +1,9 @@
-"""Create the team's train/validation/test split (65/15/20, stratified, seed 42).
+"""Create the team's train/validation/test split (65/15/20, stratified, seed 46).
 
 Run once from the repository root:
     python scripts/make_splits.py
 
-Writes data/splits/split_seed42.csv with one row per review: Id, split.
+Writes data/splits/split_seed46.csv with one row per review: Id, split.
 The split is committed to Git so everyone trains and tests on the same rows.
 Do not rerun it to make a new split; load it with data_utils.load_splits().
 """
@@ -15,8 +15,8 @@ from sklearn.model_selection import train_test_split
 
 ROOT = Path(__file__).resolve().parents[1]
 CLEAN = ROOT / 'data/processed/group_seed46_clean.csv'
-OUT = ROOT / 'data/splits/split_seed42.csv'
-SEED = 42
+OUT = ROOT / 'data/splits/split_seed46.csv'
+SEED = 46
 TEST, VAL = 0.20, 0.15
 
 

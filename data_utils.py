@@ -18,7 +18,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parent
 CLEAN = ROOT / 'data/processed/group_seed46_clean.csv'
-SPLIT = ROOT / 'data/splits/split_seed42.csv'
+SPLIT = ROOT / 'data/splits/split_seed46.csv'
 
 
 def load_splits():
