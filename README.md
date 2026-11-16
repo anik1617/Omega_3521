@@ -2,7 +2,8 @@
 
 Amazon food review sentiment analysis project. Planned deliverables include text
 feature engineering, classical and deep/modern model comparisons, and a deployed
-Streamlit application. Models and the application are not implemented yet.
+Streamlit application. Multinomial Naive Bayes training is implemented; the
+application and other models are not implemented yet.
 
 ## Team
 
@@ -54,6 +55,28 @@ train, val, test = load_splits()      # model input is the `text` column, label 
 Fit vectorizers and models on `train`, tune on `val`, and report numbers from `test`.
 Do not rerun `scripts/make_splits.py`; it already made the committed split.
 
+## Multinomial Naive Bayes
+
+Run from the repository root using a local Python environment:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe scripts\train_naive_bayes.py
+```
+
+The script rebuilds the Bag-of-Words and TF-IDF features from
+`notebooks/02_features_sophiya.ipynb`: default scikit-learn unigram vectorizers
+fitted only on training text. The notebook does not save fitted vectorizers or
+matrices. The script compares smoothing values 0.1, 1, and 10 using validation
+macro-F1 separately for each representation, then reports test-set accuracy,
+per-class precision, recall, F1, and confusion matrices for both BoW and TF-IDF.
+It reports the training-set majority-class baseline on the same test set. The
+overall validation winner and its fitted vectorizer are saved together in
+`models/naive_bayes_sophiya_features_seed46.joblib`; all test metrics, vocabulary
+sizes, and validation results are saved in
+`report/model_results/naive_bayes_sophiya_features_seed46.json`.
+
 ## Milestone 2
 
 - [M2 tracker](https://docs.google.com/document/d/1NkAAW1ialDPXoOkk2UPxT6xhLj0Yuoiy5e14s_X0dLo/edit): tasks, owners, deadlines, progress log.
@@ -70,4 +93,4 @@ The PDF is a draft snapshot. Check the working charter for current edits and
 remaining placeholders before submission.
 
 Live app URL: pending deployment.
-Model training instructions: pending implementation.
+Other model training instructions: pending implementation.
