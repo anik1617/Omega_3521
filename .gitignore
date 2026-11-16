@@ -224,3 +224,7 @@ data/raw/*
 !data/raw/group_sample_seed46.csv
 data/processed/*
 !data/processed/group_seed46_clean.csv
+
+# Local AI assistant instructions
+CLAUDE.md
+AGENTS.md
