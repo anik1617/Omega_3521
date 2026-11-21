@@ -1,0 +1,7 @@
+Sentiment,predicted,count
+negative,neutral,193
+negative,positive,300
+neutral,negative,173
+neutral,positive,270
+positive,negative,317
+positive,neutral,361
