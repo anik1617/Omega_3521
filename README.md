@@ -92,7 +92,12 @@ smoothing on TF-IDF than on counts. With the earlier alpha grid (0.1 to 10)
 TF-IDF looked far worse than Bag of Words; with small alpha the two are close.
 
 ## Streamlit App
-Run `streamlit run app.py` to open the app
+Run `streamlit run app.py` to open the app. It loads every trained model listed in
+`report/model_results/*.json` (each entry's `model_path`), marks the one with the
+best validation macro-F1 as the best model, and shows a test-set metrics table.
+Models not trained yet appear as placeholders with random predictions. To add a
+model, have its training script write a results file in the same format as
+`scripts/train_naive_bayes.py`.
 ## Milestone 2
 
 - [M2 tracker](https://docs.google.com/document/d/1NkAAW1ialDPXoOkk2UPxT6xhLj0Yuoiy5e14s_X0dLo/edit): tasks, owners, deadlines, progress log.

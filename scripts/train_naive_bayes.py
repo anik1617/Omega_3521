@@ -117,6 +117,8 @@ def train_naive_bayes():
     baseline_predictions = pd.Series(majority_class, index=test.index)
 
     results = {
+        # The Streamlit app lists every model in report/model_results/*.json.
+        "model": "Multinomial Naive Bayes",
         "split": "data/splits/split_seed46.csv",
         "feature_source": "notebooks/02_features_sophiya.ipynb",
         "rows": {"train": len(train), "validation": len(val), "test": len(test)},

@@ -5,6 +5,7 @@ Run from the repository root:
     streamlit run app.py
 """
 import hashlib
+import json
 import sys
 from pathlib import Path
 
@@ -19,6 +20,8 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 LABELS = ['negative', 'neutral', 'positive']
 COLORS = {'negative': '#d9534f', 'neutral': '#9e9e9e', 'positive': '#5cb85c'}
+RESULTS_DIR = ROOT / 'report/model_results'
+FEATURE_NAMES = {'bag_of_words': 'BoW', 'tfidf': 'TF-IDF'}
 
 
 def placeholder_predict(model_name, text):
@@ -28,20 +31,65 @@ def placeholder_predict(model_name, text):
 
 
 @st.cache_resource
-def load_naive_bayes():
-    pipeline = joblib.load(ROOT / 'models/naive_bayes_bow_seed46.joblib')
+def load_pipeline(model_path):
+    pipeline = joblib.load(ROOT / model_path)
     assert list(pipeline.classes_) == LABELS
     return pipeline
 
 
+@st.cache_data
+def trained_models():
+    """Find every saved model listed in report/model_results/*.json.
+
+    A training script registers a model by writing a results file with a
+    `model` name and a `test_models` dict whose entries have `model_path`,
+    `validation_macro_f1`, and a scikit-learn `classification_report`.
+    """
+    found = {}
+    for path in sorted(RESULTS_DIR.glob('*.json')):
+        results = json.loads(path.read_text(encoding='utf-8'))
+        model_name = results.get('model', 'Multinomial Naive Bayes')
+        for features, saved in results.get('test_models', {}).items():
+            if 'model_path' not in saved or not (ROOT / saved['model_path']).exists():
+                continue
+            report = saved['classification_report']
+            name = f'{model_name} ({FEATURE_NAMES.get(features, features)})'
+            found[name] = {
+                'model_path': saved['model_path'],
+                'Validation macro-F1': saved['validation_macro_f1'],
+                'Test accuracy': report['accuracy'],
+                'Test macro-F1': report['macro avg']['f1-score'],
+                'Neutral F1': report['neutral']['f1-score'],
+            }
+    return found
+
+
+def real_predictor(model_path):
+    return lambda text: load_pipeline(model_path).predict_proba([text])[0]
+
+
+TRAINED = trained_models()
+# The best model is chosen on validation macro-F1, the same rule used in training,
+# so the test set is not used to pick it.
+BEST = max(TRAINED, key=lambda name: TRAINED[name]['Validation macro-F1']) if TRAINED else None
+
 # Display name -> function(text) returning probabilities in LABELS order.
-# Replace placeholders with real models loaded from models/*.joblib.
-MODELS = {
-    'Multinomial Naive Bayes (BoW)': lambda text: load_naive_bayes().predict_proba([text])[0],
-    'Logistic Regression (TF-IDF)': lambda text: placeholder_predict('logreg', text),
-    'Linear SVM (TF-IDF)': lambda text: placeholder_predict('svm', text),
-    'Transformer (DistilBERT)': lambda text: placeholder_predict('bert', text),
+# Trained models are loaded automatically; placeholders mark models not built yet.
+MODELS = {name: real_predictor(info['model_path']) for name, info in TRAINED.items()}
+PLACEHOLDERS = {
+    'Logistic Regression (TF-IDF)': 'logreg',
+    'Linear SVM (TF-IDF)': 'svm',
+    'Transformer (DistilBERT)': 'bert',
 }
+for name, key in PLACEHOLDERS.items():
+    MODELS.setdefault(name, lambda text, key=key: placeholder_predict(key, text))
+PLACEHOLDER_NAMES = set(MODELS) - set(TRAINED)
+
+
+def display_name(name):
+    if name == BEST:
+        return f'★ {name} (best)'
+    return f'{name} (placeholder)' if name in PLACEHOLDER_NAMES else name
 
 EXAMPLES = {
     'Positive': ('Best coffee ever', 'Smooth, rich flavor and no bitterness. I order it every month.'),
@@ -65,14 +113,35 @@ def probability_chart(probs):
 st.set_page_config(page_title='Omega Review Sentiment', layout='wide')
 st.title('Amazon Food Review Sentiment')
 st.caption('CSE 3521 · Group Omega')
-st.warning('Only Multinomial Naive Bayes is trained. The other models are placeholders '
-           'that return random predictions.')
+if BEST:
+    best = TRAINED[BEST]
+    st.success(f'**Best model: {BEST}**, chosen by validation macro-F1 '
+               f'({best["Validation macro-F1"]:.3f}). Test accuracy {best["Test accuracy"]:.1%}, '
+               f'test macro-F1 {best["Test macro-F1"]:.3f}.')
+if PLACEHOLDER_NAMES:
+    st.warning('Models marked (placeholder) are not trained yet and return random predictions: '
+               + ', '.join(sorted(PLACEHOLDER_NAMES)) + '.')
+
+with st.expander('Model performance on the test set', expanded=False):
+    if TRAINED:
+        table = pd.DataFrame([{'Model': display_name(name),
+                               **{k: v for k, v in info.items() if k != 'model_path'}}
+                              for name, info in TRAINED.items()])
+        table = table.sort_values('Validation macro-F1', ascending=False)
+        metric_columns = ['Validation macro-F1', 'Test macro-F1', 'Neutral F1']
+        st.dataframe(table.style.format({'Test accuracy': '{:.1%}',
+                                         **{c: '{:.3f}' for c in metric_columns}}),
+                     hide_index=True, width='stretch')
+        st.caption('The best model is picked on validation data; test scores are reported once.')
+    else:
+        st.info('No trained models found in report/model_results/.')
 
 left, right = st.columns(2, gap='large')
 
 with left:
     st.subheader('Input')
-    model_name = st.selectbox('Model', list(MODELS))
+    options = ([BEST] if BEST else []) + [name for name in MODELS if name != BEST]
+    model_name = st.selectbox('Model', options, format_func=display_name)
     compare = st.checkbox('Compare all models')
 
     example = st.radio('Load an example', ['None', *EXAMPLES], horizontal=True)
@@ -105,7 +174,7 @@ with right:
             rows = []
             for name, predict in MODELS.items():
                 p = predict(text)
-                rows.append({'Model': name, 'Prediction': LABELS[int(np.argmax(p))],
+                rows.append({'Model': display_name(name), 'Prediction': LABELS[int(np.argmax(p))],
                              **dict(zip(LABELS, p))})
             st.dataframe(
                 pd.DataFrame(rows).style.format({label: '{:.1%}' for label in LABELS}),

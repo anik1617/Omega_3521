@@ -1,4 +1,5 @@
 {
+  "model": "Multinomial Naive Bayes",
   "split": "data/splits/split_seed46.csv",
   "feature_source": "notebooks/02_features_sophiya.ipynb",
   "rows": {
