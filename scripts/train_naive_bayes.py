@@ -1,9 +1,10 @@
 """Train Naive Bayes with the features from Sophiya's seed-46 notebook.
 
 Run from the repository root with ``python scripts/train_naive_bayes.py``.
-The notebook does not save fitted vectorizers, so this script rebuilds its
-CountVectorizer() and TfidfVectorizer() features on the same training split.
-The selected vectorizer and classifier are saved together for inference.
+The notebook does not save fitted vectorizers, so this script rebuilds the same
+Bag of Words and TF-IDF features with data_utils.make_vectorizers() on the
+training split. Each representation's best vectorizer and classifier are saved
+together as one pipeline, so the app and the error analysis can load either.
 """
 
 import json
@@ -12,7 +13,6 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.pipeline import Pipeline
@@ -20,11 +20,18 @@ from sklearn.pipeline import Pipeline
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from data_utils import load_splits  # noqa: E402
+from data_utils import MIN_DF, NGRAM_RANGE, load_splits, make_vectorizers  # noqa: E402
 
 LABELS = ("negative", "neutral", "positive")
-ALPHAS = (0.1, 1.0, 10.0)
-MODEL_PATH = ROOT / "models/naive_bayes_sophiya_features_seed46.joblib"
+# TF-IDF values are small fractions, so it needs smaller smoothing than counts.
+ALPHAS = (0.01, 0.03, 0.1, 0.3, 1.0)
+# fit_prior=False uses equal class priors instead of the 78% positive training
+# share, which otherwise pushes borderline (often neutral) reviews to positive.
+FIT_PRIORS = (True, False)
+MODEL_PATHS = {
+    "bag_of_words": ROOT / "models/naive_bayes_bow_seed46.joblib",
+    "tfidf": ROOT / "models/naive_bayes_tfidf_seed46.joblib",
+}
 REPORT_PATH = ROOT / "report/model_results/naive_bayes_sophiya_features_seed46.json"
 
 
@@ -50,12 +57,10 @@ def train_naive_bayes():
     if any(frame.empty for frame in (train, val, test)):
         raise ValueError("Train, validation, and test partitions must all be nonempty")
 
-    # Match notebooks/02_features_sophiya.ipynb exactly: default unigram
-    # vectorizers fitted on train['text'], with no vocabulary limit or pruning.
-    features = {
-        "bag_of_words": CountVectorizer(),
-        "tfidf": TfidfVectorizer(),
-    }
+    # Match notebooks/02_features_sophiya.ipynb exactly: the shared vectorizers
+    # (cleaned text, unigrams plus bigrams, min_df=2) fitted on train['text'].
+    bow, tfidf = make_vectorizers()
+    features = {"bag_of_words": bow, "tfidf": tfidf}
     candidates = []
     vocabulary_sizes = {}
     best_by_feature = {}
@@ -66,27 +71,30 @@ def train_naive_bayes():
         vocabulary_sizes[feature_name] = len(vectorizer.vocabulary_)
 
         for alpha in ALPHAS:
-            classifier = MultinomialNB(alpha=alpha).fit(
-                X_train, train["Sentiment"]
-            )
-            score = float(f1_score(
-                val["Sentiment"], classifier.predict(X_val),
-                labels=LABELS, average="macro", zero_division=0,
-            ))
-            candidates.append({
-                "features": feature_name,
-                "alpha": alpha,
-                "validation_macro_f1": score,
-            })
-            if (feature_name not in best_by_feature or
-                    score > best_by_feature[feature_name]["validation_macro_f1"]):
-                best_by_feature[feature_name] = {
+            for fit_prior in FIT_PRIORS:
+                classifier = MultinomialNB(alpha=alpha, fit_prior=fit_prior).fit(
+                    X_train, train["Sentiment"]
+                )
+                score = float(f1_score(
+                    val["Sentiment"], classifier.predict(X_val),
+                    labels=LABELS, average="macro", zero_division=0,
+                ))
+                candidates.append({
                     "features": feature_name,
                     "alpha": alpha,
+                    "fit_prior": fit_prior,
                     "validation_macro_f1": score,
-                    "vectorizer": vectorizer,
-                    "classifier": classifier,
-                }
+                })
+                if (feature_name not in best_by_feature or
+                        score > best_by_feature[feature_name]["validation_macro_f1"]):
+                    best_by_feature[feature_name] = {
+                        "features": feature_name,
+                        "alpha": alpha,
+                        "fit_prior": fit_prior,
+                        "validation_macro_f1": score,
+                        "vectorizer": vectorizer,
+                        "classifier": classifier,
+                    }
 
     pipelines = {}
     test_models = {}
@@ -97,7 +105,9 @@ def train_naive_bayes():
         ])
         pipelines[feature_name] = pipeline
         test_models[feature_name] = {
+            "model_path": str(MODEL_PATHS[feature_name].relative_to(ROOT)),
             "alpha": chosen["alpha"],
+            "fit_prior": chosen["fit_prior"],
             "validation_macro_f1": chosen["validation_macro_f1"],
             **evaluate(test["Sentiment"], pipeline.predict(test["text"])),
         }
@@ -113,14 +123,19 @@ def train_naive_bayes():
         "labels": list(LABELS),
         "confusion_matrix_axes": "rows=actual, columns=predicted",
         "vectorizer_settings": {
-            "count_vectorizer": "CountVectorizer() defaults",
-            "tfidf_vectorizer": "TfidfVectorizer() defaults",
+            "source": "data_utils.make_vectorizers()",
+            "preprocessor": "data_utils.clean_text: lowercase, HTML tags removed, n't expanded to not",
+            "ngram_range": list(NGRAM_RANGE),
+            "min_df": MIN_DF,
+            "count_vectorizer": "raw counts",
+            "tfidf_vectorizer": "sublinear_tf=True, smoothed IDF, L2 normalization",
         },
         "vocabulary_sizes": vocabulary_sizes,
         "validation_candidates": candidates,
         "selected": {
             "features": best["features"],
             "alpha": best["alpha"],
+            "fit_prior": best["fit_prior"],
             "validation_macro_f1": best["validation_macro_f1"],
         },
         "test_models": test_models,
@@ -129,18 +144,23 @@ def train_naive_bayes():
             **evaluate(test["Sentiment"], baseline_predictions),
         },
     }
-    return pipelines[best["features"]], results
+    return pipelines, results
 
 
 def main():
-    pipeline, results = train_naive_bayes()
-    MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+    pipelines, results = train_naive_bayes()
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(pipeline, MODEL_PATH)
+    for feature_name, pipeline in pipelines.items():
+        path = MODEL_PATHS[feature_name]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        joblib.dump(pipeline, path, compress=3)
+        print(f"Saved {feature_name} model and vectorizer: {path}")
     REPORT_PATH.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
 
-    print(f"Saved model and vectorizer: {MODEL_PATH}")
     print(f"Saved metrics: {REPORT_PATH}")
+    selected = results["selected"]
+    print(f"Selected by validation macro-F1: {selected['features']}, "
+          f"alpha={selected['alpha']}, fit_prior={selected['fit_prior']}")
     comparisons = [
         ("Naive Bayes + Bag of Words", results["test_models"]["bag_of_words"]),
         ("Naive Bayes + TF-IDF", results["test_models"]["tfidf"]),

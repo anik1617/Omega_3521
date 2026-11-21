@@ -1,18 +1,23 @@
 {
   "source": "data_utils.load_splits(): committed seed-46 dataset and split",
-  "model_path": "models/naive_bayes_sophiya_features_seed46.joblib",
+  "model_path": "models/naive_bayes_bow_seed46.joblib",
   "model": "MultinomialNB",
   "features": "Bag of Words",
-  "alpha": 0.1,
-  "note": "Original saved pipeline loaded without fitting; training feature counts verified",
+  "alpha": 0.3,
+  "fit_prior": false,
+  "note": "Saved pipelines loaded without fitting; training feature counts and test metrics verified against the training script output",
+  "task4_representations": [
+    "Bag of Words",
+    "TF-IDF"
+  ],
   "rows": {
     "train": 30123,
     "validation": 6952,
     "test": 9269
   },
-  "vocabulary": 35788,
-  "test_accuracy": 0.8258711835149423,
-  "test_macro_f1": 0.6247747232662187,
+  "vocabulary": 192646,
+  "test_accuracy": 0.8595317725752508,
+  "test_macro_f1": 0.6728388098226149,
   "labels": [
     "negative",
     "neutral",
@@ -21,22 +26,22 @@
   "confusion_matrix_axes": "rows=actual, columns=predicted",
   "confusion_matrix": [
     [
-      874,
-      193,
-      300
+      1003,
+      135,
+      229
     ],
     [
-      173,
-      236,
-      270
+      163,
+      239,
+      277
     ],
     [
-      317,
-      361,
-      6545
+      238,
+      260,
+      6725
     ]
   ],
-  "test_errors": 1614,
-  "top_features_method": "model class log probability minus maximum other-class log probability; minimum 150 training occurrences",
-  "chart_method": "class-normalized document frequency for top six negative and top six positive model terms (training only)"
+  "test_errors": 1302,
+  "top_features_method": "for each representation and class: model class log probability minus maximum other-class log probability; minimum 150 training occurrences",
+  "chart_method": "class-normalized document frequency for the top six terms of each class in the selected model (training only)"
 }

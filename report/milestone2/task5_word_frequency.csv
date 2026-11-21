@@ -2,36 +2,54 @@ term,sentiment,percent_of_reviews
 threw,negative,2.59
 threw,neutral,0.18
 threw,positive,0.22
+your money,negative,2.97
+your money,neutral,0.36
+your money,positive,0.13
 disgusting,negative,2.43
 disgusting,neutral,0.32
 disgusting,positive,0.11
+very disappointed,negative,3.92
+very disappointed,neutral,0.54
+very disappointed,positive,0.09
 nasty,negative,2.66
 nasty,neutral,0.36
 nasty,positive,0.37
 waste,negative,4.97
 waste,neutral,0.77
 waste,positive,0.58
-gross,negative,1.87
-gross,neutral,0.32
-gross,positive,0.23
-refund,negative,2.23
-refund,neutral,0.45
-refund,positive,0.09
+not bad,negative,1.22
+not bad,neutral,5.98
+not bad,positive,0.85
+ok,negative,3.2
+ok,neutral,10.52
+ok,positive,1.15
+average,negative,0.59
+average,neutral,1.99
+average,positive,0.52
+okay,negative,1.69
+okay,neutral,5.49
+okay,positive,0.55
+ok but,negative,0.99
+ok but,neutral,3.22
+ok but,positive,0.15
+good but,negative,2.03
+good but,neutral,5.85
+good but,positive,1.29
 yum,negative,0.11
 yum,neutral,0.0
 yum,positive,2.03
-hooked,negative,0.07
-hooked,neutral,0.14
-hooked,positive,1.07
-fabulous,negative,0.14
-fabulous,neutral,0.09
-fabulous,positive,0.88
-addictive,negative,0.11
-addictive,neutral,0.14
-addictive,positive,0.74
-awesome,negative,0.52
-awesome,neutral,0.59
-awesome,positive,3.11
-heaven,negative,0.11
-heaven,neutral,0.14
-heaven,positive,0.65
+best price,negative,0.05
+best price,neutral,0.05
+best price,positive,0.63
+highly recommend,negative,0.34
+highly recommend,neutral,0.36
+highly recommend,positive,3.21
+so glad,negative,0.09
+so glad,neutral,0.09
+so glad,positive,0.89
+and delicious,negative,0.07
+and delicious,neutral,0.14
+and delicious,positive,1.16
+love love,negative,0.05
+love love,neutral,0.0
+love love,positive,0.43

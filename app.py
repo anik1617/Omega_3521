@@ -5,6 +5,7 @@ Run from the repository root:
     streamlit run app.py
 """
 import hashlib
+import sys
 from pathlib import Path
 
 import joblib
@@ -14,6 +15,8 @@ import pandas as pd
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parent
+# Saved vectorizers call data_utils.clean_text, so the repo root must be importable.
+sys.path.insert(0, str(ROOT))
 LABELS = ['negative', 'neutral', 'positive']
 COLORS = {'negative': '#d9534f', 'neutral': '#9e9e9e', 'positive': '#5cb85c'}
 
@@ -26,7 +29,7 @@ def placeholder_predict(model_name, text):
 
 @st.cache_resource
 def load_naive_bayes():
-    pipeline = joblib.load(ROOT / 'models/naive_bayes_sophiya_features_seed46.joblib')
+    pipeline = joblib.load(ROOT / 'models/naive_bayes_bow_seed46.joblib')
     assert list(pipeline.classes_) == LABELS
     return pipeline
 

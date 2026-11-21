@@ -66,16 +66,30 @@ python -m venv .venv
 ```
 
 The script rebuilds the Bag-of-Words and TF-IDF features from
-`notebooks/02_features_sophiya.ipynb`: default scikit-learn unigram vectorizers
-fitted only on training text. The notebook does not save fitted vectorizers or
-matrices. The script compares smoothing values 0.1, 1, and 10 using validation
-macro-F1 separately for each representation, then reports test-set accuracy,
-per-class precision, recall, F1, and confusion matrices for both BoW and TF-IDF.
-It reports the training-set majority-class baseline on the same test set. The
-overall validation winner and its fitted vectorizer are saved together in
-`models/naive_bayes_sophiya_features_seed46.joblib`; all test metrics, vocabulary
-sizes, and validation results are saved in
+`notebooks/02_features_sophiya.ipynb` with the shared `data_utils.make_vectorizers()`:
+text cleaned by `data_utils.clean_text` (lowercase, HTML tags such as `<br />`
+removed, `n't` expanded to `not`), unigrams plus bigrams, and terms in at least
+two training reviews (`min_df=2`). TF-IDF also uses sublinear term frequency.
+Vectorizers are fitted only on training text. For each representation the script
+tries smoothing values 0.01, 0.03, 0.1, 0.3, and 1, with learned class priors and
+with equal priors (`fit_prior=False`), and keeps the setting with the best
+validation macro-F1. It then reports test-set accuracy, per-class precision,
+recall, F1, and confusion matrices for both representations, plus the
+training-set majority-class baseline on the same test set. Each representation's
+best vectorizer and classifier are saved together in
+`models/naive_bayes_bow_seed46.joblib` and `models/naive_bayes_tfidf_seed46.joblib`;
+all test metrics, vocabulary sizes, and validation results are saved in
 `report/model_results/naive_bayes_sophiya_features_seed46.json`.
+
+| Test set | Accuracy | Macro-F1 | Neutral F1 |
+| --- | ---: | ---: | ---: |
+| Majority-class baseline | 0.779 | 0.292 | 0.000 |
+| Naive Bayes + Bag of Words (alpha 0.3, equal priors; selected) | 0.860 | 0.673 | 0.364 |
+| Naive Bayes + TF-IDF (alpha 0.03, equal priors) | 0.859 | 0.667 | 0.353 |
+
+TF-IDF values are small fractions, so Multinomial Naive Bayes needs much smaller
+smoothing on TF-IDF than on counts. With the earlier alpha grid (0.1 to 10)
+TF-IDF looked far worse than Bag of Words; with small alpha the two are close.
 
 ## Streamlit App
 Run `streamlit run app.py` to open the app

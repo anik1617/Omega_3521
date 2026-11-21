@@ -1,21 +1,61 @@
-class,rank,term,log_probability_difference,training_term_count
-negative,1,threw,2.4035,176
-negative,2,disgusting,2.2183,156
-negative,3,nasty,1.9852,242
-negative,4,waste,1.826,419
-negative,5,gross,1.7389,163
-negative,6,refund,1.7293,151
-negative,7,worst,1.6849,267
-negative,8,horrible,1.555,350
-negative,9,awful,1.5164,317
-negative,10,terrible,1.4963,361
-positive,1,yum,3.2568,623
-positive,2,hooked,2.2785,268
-positive,3,fabulous,2.0406,227
-positive,4,addictive,1.888,197
-positive,5,awesome,1.8859,844
-positive,6,heaven,1.8102,172
-positive,7,staple,1.7793,165
-positive,8,amazing,1.6562,966
-positive,9,delicious,1.5694,3253
-positive,10,perfect,1.5673,2102
+features,class,rank,term,log_probability_difference,training_term_count
+bag_of_words,negative,1,threw,2.3508,176
+bag_of_words,negative,2,your money,2.2873,181
+bag_of_words,negative,3,disgusting,2.256,156
+bag_of_words,negative,4,very disappointed,2.1138,211
+bag_of_words,negative,5,nasty,1.934,242
+bag_of_words,negative,6,waste,1.8812,419
+bag_of_words,negative,7,gross,1.783,163
+bag_of_words,negative,8,refund,1.777,151
+bag_of_words,negative,9,worst,1.7398,267
+bag_of_words,negative,10,to throw,1.6385,157
+bag_of_words,neutral,1,not bad,1.5792,419
+bag_of_words,neutral,2,ok,1.1726,737
+bag_of_words,neutral,3,average,1.1145,208
+bag_of_words,neutral,4,okay,1.0958,372
+bag_of_words,neutral,5,ok but,1.0758,156
+bag_of_words,neutral,6,good but,0.9803,545
+bag_of_words,neutral,7,but not,0.9324,1176
+bag_of_words,neutral,8,my hair,0.9024,259
+bag_of_words,neutral,9,pod,0.8714,262
+bag_of_words,neutral,10,not say,0.82,172
+bag_of_words,positive,1,yum,3.269,623
+bag_of_words,positive,2,best price,2.7539,163
+bag_of_words,positive,3,highly recommend,2.4208,787
+bag_of_words,positive,4,so glad,2.4091,218
+bag_of_words,positive,5,and delicious,2.3973,286
+bag_of_words,positive,6,love love,2.3609,206
+bag_of_words,positive,7,hooked,2.3309,268
+bag_of_words,positive,8,and great,2.2223,243
+bag_of_words,positive,9,is wonderful,2.1537,294
+bag_of_words,positive,10,fabulous,2.0596,227
+tfidf,negative,1,threw,2.6795,176
+tfidf,negative,2,disgusting,2.4149,156
+tfidf,negative,3,your money,2.2036,181
+tfidf,negative,4,nasty,2.1686,242
+tfidf,negative,5,very disappointed,2.1406,211
+tfidf,negative,6,waste,2.0753,419
+tfidf,negative,7,gross,1.9325,163
+tfidf,negative,8,to throw,1.9201,157
+tfidf,negative,9,worst,1.8154,267
+tfidf,negative,10,awful,1.7891,317
+tfidf,neutral,1,not bad,1.4586,419
+tfidf,neutral,2,ok,1.2405,737
+tfidf,neutral,3,okay,1.2221,372
+tfidf,neutral,4,average,1.2033,208
+tfidf,neutral,5,ok but,1.167,156
+tfidf,neutral,6,but not,0.9704,1176
+tfidf,neutral,7,good but,0.927,545
+tfidf,neutral,8,not say,0.9145,172
+tfidf,neutral,9,decent,0.8614,452
+tfidf,neutral,10,was little,0.7849,235
+tfidf,positive,1,yum,3.2677,623
+tfidf,positive,2,highly recommend,2.6963,787
+tfidf,positive,3,best price,2.6779,163
+tfidf,positive,4,and delicious,2.6106,286
+tfidf,positive,5,so glad,2.6088,218
+tfidf,positive,6,hooked,2.5847,268
+tfidf,positive,7,addictive,2.411,197
+tfidf,positive,8,great flavor,2.364,298
+tfidf,positive,9,best coffee,2.3612,165
+tfidf,positive,10,very pleased,2.3439,254
