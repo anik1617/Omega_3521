@@ -77,6 +77,8 @@ overall validation winner and its fitted vectorizer are saved together in
 sizes, and validation results are saved in
 `report/model_results/naive_bayes_sophiya_features_seed46.json`.
 
+## Streamlit App
+Run `streamlit run app.py` to open the app
 ## Milestone 2
 
 - [M2 tracker](https://docs.google.com/document/d/1NkAAW1ialDPXoOkk2UPxT6xhLj0Yuoiy5e14s_X0dLo/edit): tasks, owners, deadlines, progress log.
