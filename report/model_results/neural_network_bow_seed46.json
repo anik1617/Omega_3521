@@ -1,0 +1,104 @@
+{
+  "model": "Feedforward neural network",
+  "owner": "Ethan Brown",
+  "split": "data/splits/split_seed46.csv",
+  "rows": {
+    "train": 30123,
+    "validation": 6952,
+    "test": 9269
+  },
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "confusion_matrix_axes": "rows=actual, columns=predicted",
+  "vocabulary_sizes": {
+    "bag_of_words": 192646
+  },
+  "classifier_settings": {
+    "class": "sklearn.neural_network.MLPClassifier",
+    "hidden_layer_sizes": [
+      32,
+      16
+    ],
+    "activation": "relu",
+    "solver": "adam",
+    "random_state": 46,
+    "batch_size": 1024,
+    "epochs": 18,
+    "training_dtype": "float32"
+  },
+  "selected": {
+    "features": "bag_of_words",
+    "epoch": 5,
+    "validation_macro_f1": 0.6811691429849295
+  },
+  "test_models": {
+    "bag_of_words": {
+      "model_path": "models/neural_network_bow_seed46.joblib",
+      "vectorizer_path": "models/vectorizer_bow_seed46.joblib",
+      "validation_macro_f1": 0.6811691429849295,
+      "training_time_seconds": 46.859,
+      "classification_report": {
+        "negative": {
+          "precision": 0.8097731239092496,
+          "recall": 0.6788588149231894,
+          "f1-score": 0.7385594906486271,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.451271186440678,
+          "recall": 0.3136966126656848,
+          "f1-score": 0.37011294526498695,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.9162201019474578,
+          "recall": 0.9705108680603627,
+          "f1-score": 0.9425843754201964,
+          "support": 7223.0
+        },
+        "accuracy": 0.879382889200561,
+        "macro avg": {
+          "precision": 0.7257548040991285,
+          "recall": 0.654355431883079,
+          "f1-score": 0.6837522704446034,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.8664614081717179,
+          "recall": 0.879382889200561,
+          "f1-score": 0.8705582540955527,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          928,
+          135,
+          304
+        ],
+        [
+          129,
+          213,
+          337
+        ],
+        [
+          89,
+          124,
+          7010
+        ]
+      ]
+    }
+  },
+  "training_time_scope": "Total time in partial_fit over all epochs, in seconds",
+  "machine": {
+    "platform": "Linux-6.18.44-fc-v880-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpus": 4,
+    "python": "3.13.18",
+    "scikit_learn": "1.8.0",
+    "numpy": "2.4.3"
+  }
+}
