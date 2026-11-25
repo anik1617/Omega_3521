@@ -76,6 +76,27 @@ def predict(model, token_ids, labels, pad_id, device):
     return logits
 
 
+def plot_history(history, path):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots(figsize=(6, 3.8), layout="constrained")
+    ax.plot(history["epoch"], history["training_loss"], "o-", color="#2468a2", label="Training loss")
+    ax.plot(history["epoch"], history["validation_loss"], "s-", color="#b45309", label="Validation loss")
+    ax.set(xlabel="Epoch", ylabel="Cross-entropy", xticks=history["epoch"],
+           title="DistilBERT fine-tuning loss")
+    f1 = ax.twinx()
+    f1.plot(history["epoch"], history["validation_macro_f1"], "^--", color="#0f766e",
+            label="Validation macro-F1")
+    f1.set_ylabel("Validation macro-F1")
+    lines = ax.get_lines() + f1.get_lines()
+    ax.legend(lines, [l.get_label() for l in lines], frameon=False, fontsize=8, loc="center right")
+    ax.grid(axis="y", alpha=0.25)
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--loss-weighting", choices=["none", "sqrt"], default="none")
@@ -161,6 +182,7 @@ def main():
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     pd.DataFrame(history).to_csv(OUT_DIR / f"history_distilbert{suffix}.csv", index=False)
+    plot_history(pd.DataFrame(history), OUT_DIR / f"loss_distilbert{suffix}.png")
     results = {
         "model": "DistilBERT fine-tuned" + (", class-weighted loss" if suffix else ""),
         "owner": "Aniket Chaudhari",
