@@ -5,6 +5,9 @@ feature engineering, classical and deep/modern model comparisons, and a deployed
 Streamlit application. Multinomial Naive Bayes training is implemented; the
 application and other models are not implemented yet.
 
+**Already have the repo?** After pulling the DistilBERT update, follow
+[SETUP.md](SETUP.md) to install Git LFS, download the model, and update packages.
+
 ## Team
 
 | Member | Primary role |
