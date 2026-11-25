@@ -1,0 +1,61 @@
+features,direction,rank,term,positive_minus_negative_coef
+bag_of_words,positive,1,great,1.5221
+bag_of_words,positive,2,excellent,1.4583
+bag_of_words,positive,3,delicious,1.4367
+bag_of_words,positive,4,amazing,1.2615
+bag_of_words,positive,5,perfect,1.2374
+bag_of_words,positive,6,wonderful,1.2277
+bag_of_words,positive,7,not too,1.2017
+bag_of_words,positive,8,awesome,1.1605
+bag_of_words,positive,9,loves,1.1096
+bag_of_words,positive,10,yummy,1.0595
+bag_of_words,negative,1,disappointed,-1.4367
+bag_of_words,negative,2,terrible,-1.4087
+bag_of_words,negative,3,awful,-1.3896
+bag_of_words,negative,4,disappointing,-1.3574
+bag_of_words,negative,5,not worth,-1.3539
+bag_of_words,negative,6,yuck,-1.2609
+bag_of_words,negative,7,horrible,-1.2441
+bag_of_words,negative,8,nasty,-1.1223
+bag_of_words,negative,9,unfortunately,-1.1162
+bag_of_words,negative,10,not good,-1.116
+bag_of_words,neutral,1,ok,-0.368
+bag_of_words,neutral,2,okay,-0.327
+bag_of_words,neutral,3,update,-0.0958
+bag_of_words,neutral,4,however,-0.1605
+bag_of_words,neutral,5,not great,-0.5688
+bag_of_words,neutral,6,so so,-0.1271
+bag_of_words,neutral,7,not bad,0.9182
+bag_of_words,neutral,8,not say,-0.0457
+bag_of_words,neutral,9,tasty but,-0.1675
+bag_of_words,neutral,10,food but,-0.1995
+tfidf,positive,1,great,21.4275
+tfidf,positive,2,delicious,12.3578
+tfidf,positive,3,best,12.0512
+tfidf,positive,4,good,11.567
+tfidf,positive,5,excellent,10.6131
+tfidf,positive,6,perfect,9.6757
+tfidf,positive,7,the best,9.3428
+tfidf,positive,8,love,8.4504
+tfidf,positive,9,wonderful,8.3488
+tfidf,positive,10,loves,8.3477
+tfidf,negative,1,not,-17.3388
+tfidf,negative,2,disappointed,-11.0557
+tfidf,negative,3,terrible,-9.4272
+tfidf,negative,4,not worth,-9.3596
+tfidf,negative,5,awful,-9.2983
+tfidf,negative,6,disappointing,-9.0143
+tfidf,negative,7,horrible,-8.9843
+tfidf,negative,8,bad,-7.8143
+tfidf,negative,9,yuck,-7.7651
+tfidf,negative,10,unfortunately,-7.6525
+tfidf,neutral,1,but,-1.6217
+tfidf,neutral,2,ok,-3.7648
+tfidf,neutral,3,however,-1.7042
+tfidf,neutral,4,okay,-2.7147
+tfidf,neutral,5,not bad,3.6526
+tfidf,neutral,6,not great,-2.6327
+tfidf,neutral,7,stars,1.8213
+tfidf,neutral,8,update,-0.3787
+tfidf,neutral,9,not,-17.3388
+tfidf,neutral,10,decent,-0.7957
