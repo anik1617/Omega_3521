@@ -1,5 +1,12 @@
-"""Train the Milestone 3 feedforward network on the shared TF-IDF features."""
+"""Train the Milestone 3 feedforward network on the shared TF-IDF features.
 
+``python scripts/train_neural_network.py`` trains on TF-IDF (the default).
+``python scripts/train_neural_network.py --features bag_of_words`` trains the
+same network on the saved Bag of Words vectorizer and writes separate files,
+so both versions show up in the comparison table and the app.
+"""
+
+import argparse
 import copy
 import json
 import os
@@ -30,10 +37,24 @@ SEED = 46
 EPOCHS = 18
 HIDDEN_LAYERS = (32, 16)
 BATCH_SIZE = 1024
-VECTORIZER_PATH = ROOT / "models/vectorizer_tfidf_seed46.joblib"
-MODEL_PATH = ROOT / "models/neural_network_tfidf_seed46.joblib"
-RESULTS_PATH = ROOT / "report/model_results/neural_network_seed46.json"
 OUT_DIR = ROOT / "report/milestone3/ethan"
+# Each feature set has its own vectorizer, model, results file, and history files.
+FEATURE_FILES = {
+    "tfidf": {
+        "label": "TF-IDF",
+        "vectorizer": ROOT / "models/vectorizer_tfidf_seed46.joblib",
+        "model": ROOT / "models/neural_network_tfidf_seed46.joblib",
+        "results": ROOT / "report/model_results/neural_network_seed46.json",
+        "suffix": "",
+    },
+    "bag_of_words": {
+        "label": "Bag of Words",
+        "vectorizer": ROOT / "models/vectorizer_bow_seed46.joblib",
+        "model": ROOT / "models/neural_network_bow_seed46.joblib",
+        "results": ROOT / "report/model_results/neural_network_bow_seed46.json",
+        "suffix": "_bow",
+    },
+}
 
 
 def train_network(x_train, y_train, x_val, y_val):
@@ -83,7 +104,7 @@ def train_network(x_train, y_train, x_val, y_val):
     return best_network, pd.DataFrame(history), best_epoch, fit_seconds
 
 
-def save_loss_plot(history, best_epoch):
+def save_loss_plot(history, best_epoch, label, suffix):
     fig, ax = plt.subplots(figsize=(7, 4), layout="constrained")
     ax.plot(history["epoch"], history["training_loss"], "o-", ms=3,
             color="#2468a2", label="Training")
@@ -91,26 +112,33 @@ def save_loss_plot(history, best_epoch):
             color="#b45309", label="Validation")
     ax.axvline(best_epoch, color="#666666", linestyle="--", linewidth=1,
                label=f"Selected epoch ({best_epoch})")
-    ax.set(title="Feedforward network loss by epoch", xlabel="Epoch",
+    title = "Feedforward network loss by epoch" + (f" ({label})" if suffix else "")
+    ax.set(title=title, xlabel="Epoch",
            ylabel="Multiclass log loss", xticks=history["epoch"])
     ax.grid(axis="y", alpha=0.25)
     ax.legend(frameon=False)
-    fig.savefig(OUT_DIR / "neural_network_loss.png", dpi=300)
+    fig.savefig(OUT_DIR / f"neural_network_loss{suffix}.png", dpi=300)
     plt.close(fig)
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--features", choices=sorted(FEATURE_FILES), default="tfidf")
+    features = parser.parse_args().features
+    files = FEATURE_FILES[features]
+    VECTORIZER_PATH, MODEL_PATH, RESULTS_PATH = files["vectorizer"], files["model"], files["results"]
+
     train, val, test = load_splits()
     rows = {"train": len(train), "validation": len(val), "test": len(test)}
     vectorizer = joblib.load(VECTORIZER_PATH)
     x_train = vectorizer.transform(train["text"])
     x_val = vectorizer.transform(val["text"])
     if not (issparse(x_train) and issparse(x_val)):
-        raise ValueError("Expected sparse TF-IDF matrices")
+        raise ValueError(f"Expected sparse {files['label']} matrices")
     # Float32 halves the memory used by the network weights and Adam state.
     x_train = x_train.astype(np.float32)
     x_val = x_val.astype(np.float32)
-    print(f"Split sizes: {rows}. TF-IDF features: {x_train.shape[1]:,}", flush=True)
+    print(f"Split sizes: {rows}. {files['label']} features: {x_train.shape[1]:,}", flush=True)
 
     network, history, best_epoch, fit_seconds = train_network(
         x_train, train["Sentiment"], x_val, val["Sentiment"]
@@ -131,7 +159,7 @@ def main():
         "rows": rows,
         "labels": list(LABELS),
         "confusion_matrix_axes": "rows=actual, columns=predicted",
-        "vocabulary_sizes": {"tfidf": x_train.shape[1]},
+        "vocabulary_sizes": {features: x_train.shape[1]},
         "classifier_settings": {
             "class": "sklearn.neural_network.MLPClassifier",
             "hidden_layer_sizes": list(HIDDEN_LAYERS),
@@ -143,12 +171,12 @@ def main():
             "training_dtype": "float32",
         },
         "selected": {
-            "features": "tfidf",
+            "features": features,
             "epoch": best_epoch,
             "validation_macro_f1": best_score,
         },
         "test_models": {
-            "tfidf": {
+            features: {
                 "model_path": MODEL_PATH.relative_to(ROOT).as_posix(),
                 "vectorizer_path": VECTORIZER_PATH.relative_to(ROOT).as_posix(),
                 "validation_macro_f1": best_score,
@@ -169,8 +197,8 @@ def main():
     }
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    history.to_csv(OUT_DIR / "neural_network_training_history.csv", index=False)
-    save_loss_plot(history, best_epoch)
+    history.to_csv(OUT_DIR / f"neural_network_training_history{files['suffix']}.csv", index=False)
+    save_loss_plot(history, best_epoch, files["label"], files["suffix"])
     joblib.dump(pipeline, MODEL_PATH, compress=3)
     RESULTS_PATH.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     print(f"Selected epoch {best_epoch} by validation macro-F1 ({best_score:.4f})")
