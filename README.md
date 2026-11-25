@@ -140,7 +140,7 @@ of `scripts/compare_models.py`).
    vectorizer to `models/`, and writes metrics to `report/model_results/`.
    ```powershell
    python scripts/train_naive_bayes.py          # Multinomial Naive Bayes
-   # Logistic Regression: command added when its training script is merged
+   python scripts/train_logistic_regression.py  # Logistic Regression
    # Feedforward neural network: command added when its training script is merged
    python scripts/compare_models.py             # comparison table and confusion matrices
    ```
