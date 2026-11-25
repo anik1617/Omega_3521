@@ -1,0 +1,104 @@
+{
+  "model": "Feedforward neural network",
+  "owner": "Ethan Brown",
+  "split": "data/splits/split_seed46.csv",
+  "rows": {
+    "train": 30123,
+    "validation": 6952,
+    "test": 9269
+  },
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "confusion_matrix_axes": "rows=actual, columns=predicted",
+  "vocabulary_sizes": {
+    "tfidf": 192646
+  },
+  "classifier_settings": {
+    "class": "sklearn.neural_network.MLPClassifier",
+    "hidden_layer_sizes": [
+      32,
+      16
+    ],
+    "activation": "relu",
+    "solver": "adam",
+    "random_state": 46,
+    "batch_size": 1024,
+    "epochs": 18,
+    "training_dtype": "float32"
+  },
+  "selected": {
+    "features": "tfidf",
+    "epoch": 11,
+    "validation_macro_f1": 0.6443730375869149
+  },
+  "test_models": {
+    "tfidf": {
+      "model_path": "models/neural_network_tfidf_seed46.joblib",
+      "vectorizer_path": "models/vectorizer_tfidf_seed46.joblib",
+      "validation_macro_f1": 0.6443730375869149,
+      "training_time_seconds": 20.967,
+      "classification_report": {
+        "negative": {
+          "precision": 0.8221381267738883,
+          "recall": 0.6356986100950988,
+          "f1-score": 0.716996699669967,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.49645390070921985,
+          "recall": 0.20618556701030927,
+          "f1-score": 0.29136316337148804,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.8950819672131147,
+          "recall": 0.9826941713969265,
+          "f1-score": 0.9368441892694516,
+          "support": 7223.0
+        },
+        "accuracy": 0.8746358830510303,
+        "macro avg": {
+          "precision": 0.7378913315654078,
+          "recall": 0.6081927828341115,
+          "f1-score": 0.6484013507703023,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.8551226741894264,
+          "recall": 0.8746358830510303,
+          "f1-score": 0.8571362234837991,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          869,
+          87,
+          411
+        ],
+        [
+          118,
+          140,
+          421
+        ],
+        [
+          70,
+          55,
+          7098
+        ]
+      ]
+    }
+  },
+  "training_time_scope": "Total time in partial_fit over all epochs, in seconds",
+  "machine": {
+    "platform": "macOS-15.7.3-arm64-arm-64bit-Mach-O",
+    "processor": "arm64",
+    "cpus": 8,
+    "python": "3.13.7",
+    "scikit_learn": "1.8.0",
+    "numpy": "2.4.3"
+  }
+}
