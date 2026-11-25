@@ -13,6 +13,12 @@ checkpoint was picked by validation macro-F1 and the test split was used once.
 | 1D CNN on word embeddings | 0.861 | 0.678 | 0.400 | 170 |
 | Logistic Regression (TF-IDF), for reference | 0.869 | 0.702 | 0.420 | 21 |
 
+These follow the Neural Networks & Deep Learning lecture (Torku, Autumn 2026). Slide 14
+covers dropout and slide 20 covers 1D CNNs over word embeddings. Slides 25–28 cover
+transformers, self-attention and fine-tuning. Slide 27 says to fine-tune pre-trained
+DistilBERT with an FC + softmax head for this project. Slide 31 suggests a
+feedforward network on TF-IDF as the deep baseline, then DistilBERT.
+
 Notes:
 
 - DistilBERT is the only model clearly ahead of Logistic Regression: +0.051
