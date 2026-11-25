@@ -12,7 +12,7 @@
 | Feedforward neural network, dropout (BoW) | 0.865 | 0.685 | 0.715 | 0.698 | 0.408 | 55.32* |
 | Averaged word embeddings (learned embeddings) | 0.853 | 0.666 | 0.696 | 0.679 | 0.389 | 107.47* |
 | 1D CNN (learned embeddings) | 0.861 | 0.692 | 0.667 | 0.678 | 0.400 | 169.94* |
-| **DistilBERT fine-tuned (WordPiece tokens)** (best) | 0.908 | 0.758 | 0.748 | 0.753 | 0.476 | 676.20* |
+| **DistilBERT fine-tuned (WordPiece tokens)** (best) | 0.908 | 0.758 | 0.748 | 0.753 | 0.478 | 676.20* |
 | Majority-class baseline | 0.779 | 0.260 | 0.333 | 0.292 | 0.000 | n/a |
 
 All numbers are on the same 20% test split (9,269 reviews, seed 46). Precision, recall, and F1 are macro averages over negative, neutral, and positive.

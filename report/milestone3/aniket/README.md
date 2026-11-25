@@ -6,7 +6,7 @@ checkpoint was picked by validation macro-F1 and the test split was used once.
 
 | Model | Accuracy | Macro F1 | Neutral F1 | Training time (s) |
 | --- | ---: | ---: | ---: | ---: |
-| DistilBERT fine-tuned (3 epochs) | 0.908 | 0.753 | 0.476 | 676 |
+| DistilBERT fine-tuned (3 epochs) | 0.908 | 0.753 | 0.478 | 676 |
 | Feedforward network, dropout + early stopping (TF-IDF) | 0.877 | 0.700 | 0.402 | 73 |
 | Feedforward network, dropout + early stopping (BoW) | 0.865 | 0.698 | 0.408 | 55 |
 | Averaged word embeddings | 0.853 | 0.679 | 0.389 | 107 |
@@ -14,7 +14,7 @@ checkpoint was picked by validation macro-F1 and the test split was used once.
 | Logistic Regression (TF-IDF), for reference | 0.869 | 0.702 | 0.420 | 21 |
 
 These follow the Neural Networks & Deep Learning lecture (Torku, Autumn 2026). Slide 14
-covers dropout and slide 20 covers 1D CNNs over word embeddings. Slides 25–28 cover
+covers dropout and slide 20 covers 1D CNNs over word embeddings. Slides 25-28 cover
 transformers, self-attention and fine-tuning. Slide 27 says to fine-tune pre-trained
 DistilBERT with an FC + softmax head for this project. Slide 31 suggests a
 feedforward network on TF-IDF as the deep baseline, then DistilBERT.
@@ -22,7 +22,7 @@ feedforward network on TF-IDF as the deep baseline, then DistilBERT.
 Notes:
 
 - DistilBERT is the only model clearly ahead of Logistic Regression: +0.051
-  macro-F1 and +0.056 neutral F1. Its validation macro-F1 was still rising at
+  macro-F1 and +0.058 neutral F1. Its validation macro-F1 was still rising at
   epoch 3 (0.719, 0.720, 0.752), so a fourth epoch might help a little.
 - The feedforward network has hidden layers of 64 and 32 with dropout 0.5 and
   stops after 3 epochs without a validation gain. With dropout, BoW and TF-IDF
@@ -33,8 +33,10 @@ Notes:
   cross-entropy on validation, which mainly helps the neutral class.
 - The CNN and averaged-embedding models learn embeddings from scratch on 30k
   reviews and land below Logistic Regression. Pretrained word vectors were not tried.
-- Model weights are not committed (too large for GitHub). Rerun the scripts to
-  get them back in `models/torch/` and `models/distilbert_seed46/`.
+- DistilBERT is committed in float16 with Git LFS (`models/distilbert_seed46/`) and runs in the app.
+  The test scores above are from that float16 copy. An 8-bit version was also tried and dropped:
+  it fell to 0.712 macro-F1 and 0.350 neutral F1. The other models' weights are not committed;
+  rerun the script to get them back in `models/torch/`.
 
 Files: `history_*.csv` (per-epoch losses and validation macro-F1),
 `loss_*.png` (loss curves).

@@ -27,7 +27,8 @@
     "schedule": "linear warmup over 10% of steps, then linear decay",
     "mixed_precision": "float16 autocast",
     "loss_weighting": "none",
-    "random_seed": 46
+    "random_seed": 46,
+    "saved_weights": "float16 copy of the kept epoch (test scores are from this copy)"
   },
   "selected": {
     "epoch": 3,
@@ -47,28 +48,28 @@
           "support": 1367.0
         },
         "neutral": {
-          "precision": 0.490625,
-          "recall": 0.46244477172312226,
-          "f1-score": 0.4761182714177407,
+          "precision": 0.4921875,
+          "recall": 0.4639175257731959,
+          "f1-score": 0.47763457164518575,
           "support": 679.0
         },
         "positive": {
-          "precision": 0.960417811984607,
-          "recall": 0.9674650422262218,
-          "f1-score": 0.9639285467963308,
+          "precision": 0.9605552501374381,
+          "recall": 0.9676034888550464,
+          "f1-score": 0.9640664873439547,
           "support": 7223.0
         },
-        "accuracy": 0.9077570395943467,
+        "accuracy": 0.9079728126011436,
         "macro avg": {
-          "precision": 0.7576400405555983,
-          "recall": 0.7477899818748485,
-          "f1-score": 0.7525646256792003,
+          "precision": 0.7582066866065419,
+          "recall": 0.7483270487678144,
+          "f1-score": 0.75311603927089,
           "support": 9269.0
         },
         "weighted avg": {
-          "precision": 0.9055710986406695,
-          "recall": 0.9077570395943467,
-          "f1-score": 0.9066203181804195,
+          "precision": 0.905792660112015,
+          "recall": 0.9079728126011436,
+          "f1-score": 0.9068388867886753,
           "support": 9269.0
         }
       },
@@ -80,13 +81,13 @@
         ],
         [
           164,
-          314,
-          201
+          315,
+          200
         ],
         [
           77,
-          158,
-          6988
+          157,
+          6989
         ]
       ]
     }

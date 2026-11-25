@@ -1,3 +1,5 @@
+# CPU build of torch for the app (DistilBERT); a CUDA build already installed also works.
+--extra-index-url https://download.pytorch.org/whl/cpu
 pandas==3.0.3
 numpy==2.4.3
 matplotlib==3.10.8
@@ -5,3 +7,5 @@ scikit-learn==1.8.0
 scipy==1.17.1
 joblib==1.5.3
 streamlit==1.67.0
+torch==2.10.0
+transformers==5.3.0

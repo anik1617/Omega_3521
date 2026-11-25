@@ -21,7 +21,9 @@ sys.path.insert(0, str(ROOT))
 LABELS = ['negative', 'neutral', 'positive']
 COLORS = {'negative': '#d9534f', 'neutral': '#9e9e9e', 'positive': '#5cb85c'}
 RESULTS_DIR = ROOT / 'report/model_results'
-FEATURE_NAMES = {'bag_of_words': 'BoW', 'tfidf': 'TF-IDF'}
+FEATURE_NAMES = {'bag_of_words': 'BoW', 'tfidf': 'TF-IDF', 'distilbert_tokens': 'WordPiece tokens'}
+# DistilBERT reads at most this many tokens, the same cut used in training.
+DISTILBERT_MAX_LENGTH = 256
 
 
 def placeholder_predict(model_name, text):
@@ -52,6 +54,11 @@ def trained_models():
         for features, saved in results.get('test_models', {}).items():
             if 'model_path' not in saved or not (ROOT / saved['model_path']).exists():
                 continue
+            if saved['model_path'].endswith('.pt'):
+                continue  # raw PyTorch weights from train_torch_models.py; not served in the app
+            weights = ROOT / saved['model_path'] / 'model.safetensors'
+            if (ROOT / saved['model_path']).is_dir() and (not weights.exists() or weights.stat().st_size < 1_000_000):
+                continue  # Git LFS file not downloaded yet (run `git lfs pull`)
             report = saved['classification_report']
             name = f'{model_name} ({FEATURE_NAMES.get(features, features)})'
             found[name] = {
@@ -64,7 +71,32 @@ def trained_models():
     return found
 
 
+@st.cache_resource
+def load_transformer(model_path):
+    """Load a fine-tuned DistilBERT folder saved by scripts/train_distilbert.py."""
+    import torch
+    from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+    tokenizer = AutoTokenizer.from_pretrained(ROOT / model_path)
+    # Weights are stored in float16 to fit GitHub; run in float32, which every CPU supports.
+    model = AutoModelForSequenceClassification.from_pretrained(ROOT / model_path, dtype=torch.float32).eval()
+    assert [model.config.id2label[i] for i in range(len(LABELS))] == LABELS
+    return tokenizer, model
+
+
+def transformer_predict(model_path, text):
+    import torch
+
+    tokenizer, model = load_transformer(model_path)
+    inputs = tokenizer(text, truncation=True, max_length=DISTILBERT_MAX_LENGTH, return_tensors='pt')
+    with torch.no_grad():
+        return torch.softmax(model(**inputs).logits[0], dim=0).numpy()
+
+
 def real_predictor(model_path):
+    # A folder is a Hugging Face model; a file is a scikit-learn pipeline.
+    if (ROOT / model_path).is_dir():
+        return lambda text: transformer_predict(model_path, text)
     return lambda text: load_pipeline(model_path).predict_proba([text])[0]
 
 

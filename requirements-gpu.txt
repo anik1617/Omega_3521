@@ -1,7 +1,5 @@
-# Extra packages for the PyTorch models (scripts/train_torch_models.py and
-# scripts/train_distilbert.py). Not needed for the app or the scikit-learn models.
-# Install the CUDA build of torch for your GPU from https://pytorch.org first,
-# for example: pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
+# Extra notes for training the PyTorch models (scripts/train_torch_models.py and
+# scripts/train_distilbert.py) on a GPU. requirements.txt already pins torch and
+# transformers; for training, install the CUDA build of torch first, for example:
+# pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
 -r requirements.txt
-torch==2.10.0
-transformers==5.3.0

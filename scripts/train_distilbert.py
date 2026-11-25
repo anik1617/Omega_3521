@@ -11,8 +11,9 @@ macro-F1 is kept and evaluated on the test split once.
 
 Needs a CUDA GPU in practice (about 5 minutes per epoch on an RTX 3060 Laptop).
 The first run downloads the pre-trained weights (about 260 MB) from Hugging Face.
-The fine-tuned model is saved to models/distilbert/ (gitignored, too large for
-GitHub). Results go to report/model_results/distilbert_seed46.json (or
+The kept epoch is saved in float16 to models/distilbert_seed46/ for the app
+(model.safetensors is stored with Git LFS); full-precision checkpoints go to
+models/distilbert_seed46_checkpoint/ (gitignored). Results go to report/model_results/distilbert_seed46.json (or
 distilbert_sqrt_weights_seed46.json with --loss-weighting sqrt).
 """
 
@@ -134,6 +135,8 @@ def main():
     weights = class_weights(labels["train"], weighting)
     weights = weights.to(device) if weights is not None else None
 
+    # Full-precision checkpoints stay local; the app copy is saved in float16 at the end.
+    checkpoint_dir = ROOT / f"models/distilbert{suffix}_seed46_checkpoint"
     save_dir = ROOT / f"models/distilbert{suffix}_seed46"
     history, train_seconds, best_score, best_epoch = [], 0.0, -1.0, 0
     for epoch in range(1, EPOCHS + 1):
@@ -173,11 +176,15 @@ def main():
               f"({epoch_seconds:.0f} s)", flush=True)
         if row["validation_macro_f1"] > best_score:
             best_score, best_epoch = row["validation_macro_f1"], epoch
-            model.save_pretrained(save_dir)
-            tokenizer.save_pretrained(save_dir)
+            model.save_pretrained(checkpoint_dir)
+            tokenizer.save_pretrained(checkpoint_dir)
 
-    # Reload the kept epoch, then touch the test split once.
-    model = AutoModelForSequenceClassification.from_pretrained(save_dir).to(device)
+    # Save the kept epoch in float16 (about 134 MB, stored with Git LFS) for the app,
+    # then reload that copy and touch the test split once, so the reported scores are
+    # the ones the app gets.
+    AutoModelForSequenceClassification.from_pretrained(checkpoint_dir).half().save_pretrained(save_dir)
+    tokenizer.save_pretrained(save_dir)
+    model = AutoModelForSequenceClassification.from_pretrained(save_dir, dtype=torch.float32).to(device)
     report, matrix = test_report(labels["test"], predict(model, tokens["test"], labels["test"], pad_id, device))
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
