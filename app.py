@@ -76,11 +76,9 @@ BEST = max(TRAINED, key=lambda name: TRAINED[name]['Validation macro-F1']) if TR
 # Display name -> function(text) returning probabilities in LABELS order.
 # Trained models are loaded automatically; placeholders mark models not built yet.
 MODELS = {name: real_predictor(info['model_path']) for name, info in TRAINED.items()}
-PLACEHOLDERS = {
-    'Logistic Regression (TF-IDF)': 'logreg',
-    'Linear SVM (TF-IDF)': 'svm',
-    'Transformer (DistilBERT)': 'bert',
-}
+# All planned models are trained now. Add a name -> key entry here to show a
+# planned model as a placeholder until its results file exists.
+PLACEHOLDERS = {}
 for name, key in PLACEHOLDERS.items():
     MODELS.setdefault(name, lambda text, key=key: placeholder_predict(key, text))
 PLACEHOLDER_NAMES = set(MODELS) - set(TRAINED)
