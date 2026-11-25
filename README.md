@@ -142,6 +142,7 @@ of `scripts/compare_models.py`).
    python scripts/train_naive_bayes.py          # Multinomial Naive Bayes
    python scripts/train_logistic_regression.py  # Logistic Regression
    python scripts/train_neural_network.py       # Feedforward neural network (run after Logistic Regression, which saves the TF-IDF vectorizer)
+   python scripts/train_neural_network.py --features bag_of_words   # same network on Bag of Words
    python scripts/compare_models.py             # comparison table and confusion matrices
    ```
    Do not rerun `scripts/make_splits.py`; the committed split is the one every
