@@ -72,6 +72,7 @@ def collect_rows():
                 "Validation macro F1": saved.get("validation_macro_f1"),
                 "Machine": ", ".join(str(machine[k]) for k in ("platform", "cpus") if k in machine)
                            + (" CPUs" if "cpus" in machine else ""),
+                "Timing scope": results.get("training_time_scope", ""),
                 "Results file": str(path.relative_to(ROOT)),
             })
             matrices[name] = np.array(saved["confusion_matrix"])
@@ -96,6 +97,11 @@ def collect_rows():
         name = f"{model} ({features})"
         if not any(t.startswith(model) and features in t for t in trained):
             rows.append({"Model": name, "Results file": "pending"})
+    order = ("Multinomial Naive Bayes", "Logistic Regression", "Feedforward neural network",
+             "Majority-class baseline")
+    rows.sort(key=lambda r: next((i for i, o in enumerate(order) if r["Model"].startswith(o)),
+                                 len(order)))
+    matrices = {r["Model"]: matrices[r["Model"]] for r in rows if r["Model"] in matrices}
     return pd.DataFrame(rows), matrices
 
 
@@ -119,11 +125,12 @@ def write_markdown(table, best):
         else:
             cells = [fmt(row[c]) for c in metric_cols]
             seconds = row["Training time (s)"]
+            mark = "*" if isinstance(row.get("Timing scope"), str) and row["Timing scope"] else ""
             cells.append("n/a" if row["Model"] == "Majority-class baseline"
-                         else fmt(seconds, 2) if pd.notna(seconds) else "not recorded")
+                         else fmt(seconds, 2) + mark if pd.notna(seconds) else "not recorded")
         lines.append(f"| {name} | " + " | ".join(cells) + " |")
 
-    machines = sorted({m for m in table.get("Machine", pd.Series(dtype=str)).dropna() if m})
+    timed = table[table.get("Machine", pd.Series(dtype=str)).fillna("") != ""]
     notes = [
         "All numbers are on the same 20% test split (9,269 reviews, seed 46). "
         "Precision, recall, and F1 are macro averages over negative, neutral, and positive.",
@@ -132,9 +139,13 @@ def write_markdown(table, best):
     ]
     if best:
         notes.append(f"Best model by validation macro F1: {best}.")
-    if machines:
-        notes.append("Timed on: " + "; ".join(machines) + ".")
-    text = "# Model comparison (Milestone 3)\n\n" + "\n".join(lines) + "\n" + "\n\n".join(notes) + "\n"
+    for _, row in timed[timed["Timing scope"].fillna("") != ""].iterrows():
+        notes.append(f"\\* {row['Model']}: {row['Timing scope']}.")
+    if len(timed):
+        by_machine = timed.groupby("Machine")["Model"].apply(lambda m: ", ".join(m))
+        notes.append("Timed on: " + "; ".join(f"{m} ({names})" for m, names in by_machine.items())
+                     + ". Times from different machines are only roughly comparable.")
+    text = "# Model comparison (Milestone 3)\n\n" + "\n".join(lines) + "\n\n" + "\n\n".join(notes) + "\n"
     (OUT_DIR / "model_comparison.md").write_text(text, encoding="utf-8")
 
 
