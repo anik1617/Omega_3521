@@ -8,7 +8,10 @@ together as one pipeline, so the app and the error analysis can load either.
 """
 
 import json
+import os
+import platform
 import sys
+import time
 from pathlib import Path
 
 import joblib
@@ -33,6 +36,16 @@ MODEL_PATHS = {
     "tfidf": ROOT / "models/naive_bayes_tfidf_seed46.joblib",
 }
 REPORT_PATH = ROOT / "report/model_results/naive_bayes_sophiya_features_seed46.json"
+
+
+def machine_info():
+    """Describe the computer the training times were measured on."""
+    return {
+        "platform": platform.platform(),
+        "processor": platform.processor() or platform.machine(),
+        "cpus": os.cpu_count(),
+        "python": platform.python_version(),
+    }
 
 
 def evaluate(y_true, y_pred):
@@ -65,16 +78,21 @@ def train_naive_bayes():
     vocabulary_sizes = {}
     best_by_feature = {}
 
+    vectorizer_seconds = {}
     for feature_name, vectorizer in features.items():
+        start = time.perf_counter()
         X_train = vectorizer.fit_transform(train["text"])
+        vectorizer_seconds[feature_name] = time.perf_counter() - start
         X_val = vectorizer.transform(val["text"])
         vocabulary_sizes[feature_name] = len(vectorizer.vocabulary_)
 
         for alpha in ALPHAS:
             for fit_prior in FIT_PRIORS:
+                start = time.perf_counter()
                 classifier = MultinomialNB(alpha=alpha, fit_prior=fit_prior).fit(
                     X_train, train["Sentiment"]
                 )
+                fit_seconds = time.perf_counter() - start
                 score = float(f1_score(
                     val["Sentiment"], classifier.predict(X_val),
                     labels=LABELS, average="macro", zero_division=0,
@@ -94,6 +112,7 @@ def train_naive_bayes():
                         "validation_macro_f1": score,
                         "vectorizer": vectorizer,
                         "classifier": classifier,
+                        "fit_seconds": fit_seconds,
                     }
 
     pipelines = {}
@@ -109,6 +128,11 @@ def train_naive_bayes():
             "alpha": chosen["alpha"],
             "fit_prior": chosen["fit_prior"],
             "validation_macro_f1": chosen["validation_macro_f1"],
+            # Fit time on the training split: vectorizer fit_transform plus the
+            # selected classifier's fit. Tuning the other candidates is not counted.
+            "training_time_seconds": vectorizer_seconds[feature_name] + chosen["fit_seconds"],
+            "vectorizer_fit_seconds": vectorizer_seconds[feature_name],
+            "classifier_fit_seconds": chosen["fit_seconds"],
             **evaluate(test["Sentiment"], pipeline.predict(test["text"])),
         }
 
@@ -133,6 +157,7 @@ def train_naive_bayes():
             "tfidf_vectorizer": "sublinear_tf=True, smoothed IDF, L2 normalization",
         },
         "vocabulary_sizes": vocabulary_sizes,
+        "machine": machine_info(),
         "validation_candidates": candidates,
         "selected": {
             "features": best["features"],
@@ -171,6 +196,8 @@ def main():
     for name, result in comparisons:
         report = result["classification_report"]
         print(f"\n{name}: accuracy={report['accuracy']:.4f}")
+        if "training_time_seconds" in result:
+            print(f"training time: {result['training_time_seconds']:.2f} s")
         print(f"{'class':<13}{'precision':>11}{'recall':>10}{'F1':>10}{'support':>10}")
         for label in (*LABELS, "macro avg", "weighted avg"):
             row = report[label]

@@ -28,6 +28,12 @@
     "bag_of_words": 192646,
     "tfidf": 192646
   },
+  "machine": {
+    "platform": "Linux-6.18.44-fc-v880-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "cpus": 4,
+    "python": "3.13.18"
+  },
   "validation_candidates": [
     {
       "features": "bag_of_words",
@@ -162,6 +168,9 @@
       "alpha": 0.3,
       "fit_prior": false,
       "validation_macro_f1": 0.6778586681229265,
+      "training_time_seconds": 3.236899483000002,
+      "vectorizer_fit_seconds": 3.153793010000001,
+      "classifier_fit_seconds": 0.08310647300000085,
       "classification_report": {
         "negative": {
           "precision": 0.7143874643874644,
@@ -218,6 +227,9 @@
       "alpha": 0.03,
       "fit_prior": false,
       "validation_macro_f1": 0.6644126933924251,
+      "training_time_seconds": 3.7053945349999964,
+      "vectorizer_fit_seconds": 3.639689325000006,
+      "classifier_fit_seconds": 0.06570520999999019,
       "classification_report": {
         "negative": {
           "precision": 0.7039381153305204,
