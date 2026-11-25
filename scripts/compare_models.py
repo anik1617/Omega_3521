@@ -134,7 +134,7 @@ def write_markdown(table, best):
         notes.append(f"Best model by validation macro F1: {best}.")
     if machines:
         notes.append("Timed on: " + "; ".join(machines) + ".")
-    text = "# Model comparison (Milestone 3)\n\n" + "\n".join(lines) + "\n" + "\n\n".join(notes) + "\n"
+    text = "# Model comparison (Milestone 3)\n\n" + "\n".join(lines) + "\n\n" + "\n\n".join(notes) + "\n"
     (OUT_DIR / "model_comparison.md").write_text(text, encoding="utf-8")
 
 

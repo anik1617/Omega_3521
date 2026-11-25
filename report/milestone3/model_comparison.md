@@ -8,6 +8,7 @@
 | Multinomial Naive Bayes (TF-IDF) | 0.859 | 0.668 | 0.668 | 0.667 | 0.352 | 3.71 |
 | Majority-class baseline | 0.779 | 0.260 | 0.333 | 0.292 | 0.000 | n/a |
 | Feedforward neural network (TF-IDF) | pending | pending | pending | pending | pending | pending |
+
 All numbers are on the same 20% test split (9,269 reviews, seed 46). Precision, recall, and F1 are macro averages over negative, neutral, and positive.
 
 Training time is the fit time on the training split (vectorizer plus the selected model), not counting hyperparameter search.
