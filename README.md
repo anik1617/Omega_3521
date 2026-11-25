@@ -99,7 +99,7 @@ TF-IDF looked far worse than Bag of Words; with small alpha the two are close.
 Run `streamlit run app.py` to open the app. It loads every trained model listed in
 `report/model_results/*.json` (each entry's `model_path`), marks the one with the
 best validation macro-F1 as the best model, and shows a test-set metrics table.
-Models not trained yet appear as placeholders with random predictions. To add a
+To add a
 model, have its training script write a results file in the same format as
 `scripts/train_naive_bayes.py`.
 
@@ -141,7 +141,7 @@ of `scripts/compare_models.py`).
    ```powershell
    python scripts/train_naive_bayes.py          # Multinomial Naive Bayes
    python scripts/train_logistic_regression.py  # Logistic Regression
-   # Feedforward neural network: command added when its training script is merged
+   python scripts/train_neural_network.py       # Feedforward neural network (run after Logistic Regression, which saves the TF-IDF vectorizer)
    python scripts/compare_models.py             # comparison table and confusion matrices
    ```
    Do not rerun `scripts/make_splits.py`; the committed split is the one every
