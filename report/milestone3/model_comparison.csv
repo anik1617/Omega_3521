@@ -1,0 +1,7 @@
+Model,Accuracy,Macro precision,Macro recall,Macro F1,Neutral F1,Training time (s),Validation macro F1,Machine,Results file
+Logistic Regression (BoW),0.8642787787247815,0.6791381940735214,0.6997372678769448,0.6888676322762644,0.3942446043165468,43.42,0.6888624499981777,Linux-6.18.44-fc-v880-x86_64-with-glibc2.39,report/model_results/logistic_regression_sophiya_seed46.json
+Logistic Regression (TF-IDF),0.8690257848743123,0.6896448693411473,0.7170386228094149,0.7024478490272892,0.41964912280701755,21.01,0.6974648935028417,Linux-6.18.44-fc-v880-x86_64-with-glibc2.39,report/model_results/logistic_regression_sophiya_seed46.json
+Multinomial Naive Bayes (BoW),0.8595317725752508,0.673794194369418,0.672255092963499,0.6728388098226149,0.36405178979436403,3.236899483000002,0.6778586681229265,"Linux-6.18.44-fc-v880-x86_64-with-glibc2.39, 4 CPUs",report/model_results/naive_bayes_sophiya_features_seed46.json
+Multinomial Naive Bayes (TF-IDF),0.8588844535548603,0.6677847111616276,0.6675798892643914,0.667395085181573,0.3524904214559387,3.7053945349999964,0.6644126933924251,"Linux-6.18.44-fc-v880-x86_64-with-glibc2.39, 4 CPUs",report/model_results/naive_bayes_sophiya_features_seed46.json
+Majority-class baseline,0.7792642140468228,0.2597547380156076,0.3333333333333333,0.29197994987468673,0.0,,,,report/model_results/naive_bayes_sophiya_features_seed46.json
+Feedforward neural network (TF-IDF),,,,,,,,,pending
