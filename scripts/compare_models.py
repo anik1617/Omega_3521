@@ -41,7 +41,8 @@ ROOT = Path(__file__).resolve().parents[1]
 RESULTS_DIR = ROOT / "report/model_results"
 OUT_DIR = ROOT / "report/milestone3"
 LABELS = ["negative", "neutral", "positive"]
-FEATURE_NAMES = {"bag_of_words": "BoW", "tfidf": "TF-IDF"}
+FEATURE_NAMES = {"bag_of_words": "BoW", "tfidf": "TF-IDF", "word_embeddings": "learned embeddings",
+                 "distilbert_tokens": "WordPiece tokens"}
 # Models in the M3 plan. A row stays "pending" until its results file exists.
 PLANNED = [
     ("Logistic Regression", "BoW"),
@@ -71,7 +72,8 @@ def collect_rows():
                 "Training time (s)": seconds,
                 "Validation macro F1": saved.get("validation_macro_f1"),
                 "Machine": ", ".join(str(machine[k]) for k in ("platform", "cpus") if k in machine)
-                           + (" CPUs" if "cpus" in machine else ""),
+                           + (" CPUs" if "cpus" in machine else "")
+                           + (f", {machine['gpu']}" if "gpu" in machine else ""),
                 "Timing scope": results.get("training_time_scope", ""),
                 "Results file": str(path.relative_to(ROOT)),
             })
@@ -98,7 +100,7 @@ def collect_rows():
         if not any(t.startswith(model) and features in t for t in trained):
             rows.append({"Model": name, "Results file": "pending"})
     order = ("Multinomial Naive Bayes", "Logistic Regression", "Feedforward neural network",
-             "Majority-class baseline")
+             "Averaged word embeddings", "1D CNN", "DistilBERT", "Majority-class baseline")
     rows.sort(key=lambda r: next((i for i, o in enumerate(order) if r["Model"].startswith(o)),
                                  len(order)))
     matrices = {r["Model"]: matrices[r["Model"]] for r in rows if r["Model"] in matrices}

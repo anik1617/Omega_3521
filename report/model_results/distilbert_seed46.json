@@ -1,0 +1,103 @@
+{
+  "model": "DistilBERT fine-tuned",
+  "owner": "Aniket Chaudhari",
+  "split": "data/splits/split_seed46.csv",
+  "rows": {
+    "train": 30123,
+    "validation": 6952,
+    "test": 9269
+  },
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "confusion_matrix_axes": "rows=actual, columns=predicted",
+  "classifier_settings": {
+    "checkpoint": "distilbert-base-uncased",
+    "head": "linear classification head on the [CLS] token",
+    "fine_tuned_layers": "all",
+    "max_length_tokens": 256,
+    "share_of_training_reviews_truncated": 0.0774,
+    "batch_size": 16,
+    "epochs": 3,
+    "optimizer": "AdamW",
+    "learning_rate": 2e-05,
+    "weight_decay": 0.01,
+    "schedule": "linear warmup over 10% of steps, then linear decay",
+    "mixed_precision": "float16 autocast",
+    "loss_weighting": "none",
+    "random_seed": 46
+  },
+  "selected": {
+    "epoch": 3,
+    "validation_macro_f1": 0.7518394130462793
+  },
+  "test_models": {
+    "distilbert_tokens": {
+      "model_path": "models/distilbert_seed46",
+      "validation_macro_f1": 0.7518394130462793,
+      "training_time_seconds": 676.2,
+      "selected_epoch": 3,
+      "classification_report": {
+        "negative": {
+          "precision": 0.8218773096821878,
+          "recall": 0.8134601316752011,
+          "f1-score": 0.8176470588235294,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.490625,
+          "recall": 0.46244477172312226,
+          "f1-score": 0.4761182714177407,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.960417811984607,
+          "recall": 0.9674650422262218,
+          "f1-score": 0.9639285467963308,
+          "support": 7223.0
+        },
+        "accuracy": 0.9077570395943467,
+        "macro avg": {
+          "precision": 0.7576400405555983,
+          "recall": 0.7477899818748485,
+          "f1-score": 0.7525646256792003,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.9055710986406695,
+          "recall": 0.9077570395943467,
+          "f1-score": 0.9066203181804195,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          1112,
+          168,
+          87
+        ],
+        [
+          164,
+          314,
+          201
+        ],
+        [
+          77,
+          158,
+          6988
+        ]
+      ]
+    }
+  },
+  "training_time_scope": "GPU time in the fine-tuning loop over all 3 epochs; excludes tokenization and validation passes",
+  "machine": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "cpus": 20,
+    "python": "3.11.0",
+    "torch": "2.10.0+cu128",
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU"
+  }
+}
