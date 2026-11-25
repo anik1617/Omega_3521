@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Group Omega Milestone 3 Report</title>
+<style>
+  @page { size: Letter; margin: 0.85in 0.9in; }
+  body { font-family: "Times New Roman", Times, serif; font-size: 11.5pt; line-height: 1.32; color: #111; }
+  h1 { font-size: 17pt; margin: 0 0 2pt; }
+  .sub { font-size: 10.5pt; color: #333; margin-bottom: 12pt; }
+  h2 { font-size: 13pt; margin: 14pt 0 5pt; }
+  h3 { font-size: 11.5pt; margin: 9pt 0 3pt; }
+  p { margin: 0 0 6pt; text-align: justify; }
+  table { border-collapse: collapse; width: 100%; font-size: 10pt; margin: 4pt 0 3pt; }
+  th, td { border-top: 1px solid #999; border-bottom: 1px solid #999; padding: 2.5pt 5pt; }
+  th { text-align: left; background: #f1f1f1; }
+  td.n, th.n { text-align: right; }
+  tr.best td { font-weight: bold; }
+  .cap { font-size: 9.5pt; color: #333; margin: 2pt 0 9pt; text-align: left; }
+  figure { margin: 6pt 0 8pt; text-align: center; page-break-inside: avoid; }
+  figure img { max-width: 100%; }
+  figcaption { font-size: 9.5pt; color: #333; margin-top: 3pt; text-align: left; }
+  code { font-family: Consolas, "Courier New", monospace; font-size: 9.8pt; }
+  .two { display: flex; gap: 10pt; }
+  .two figure { flex: 1; }
+  .keep { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<h1>Amazon Food Review Sentiment: Milestone 3 Report</h1>
+<div class="sub">CSE 3521, Group Omega: Aniket Chaudhari, Sophiya Khurana, Ethan Brown, Lianyu Yang, Shilin Dong<br>
+Repository: github.com/anik1617/Omega_3521 &nbsp;·&nbsp; App: <code>streamlit run app.py</code> (deployed URL pending)</div>
+
+<p>We classify Amazon Fine Food reviews as negative (1 to 2 stars), neutral (3 stars), or positive (4 to 5 stars). All models use the same 46,344-review seed-46 dataset and the same stratified split: 30,123 training, 6,952 validation, and 9,269 test reviews. The model input is the review summary and body joined by a space. Hyperparameters and checkpoints were chosen on the validation split only, and each model was scored once on the test split. Positive reviews make up 78% of the data and neutral only 7%, so we rank models by macro-F1, which weights the three classes equally, rather than by accuracy.</p>
+
+<h2>1. Model comparison</h2>
+
+<table>
+<tr><th>Model</th><th class="n">Accuracy</th><th class="n">Macro precision</th><th class="n">Macro recall</th><th class="n">Macro F1</th><th class="n">Neutral F1</th><th class="n">Training time (s)</th></tr>
+<tr><td>Majority class (always positive)</td><td class="n">0.779</td><td class="n">0.260</td><td class="n">0.333</td><td class="n">0.292</td><td class="n">0.000</td><td class="n">n/a</td></tr>
+<tr><td>Naive Bayes, Bag of Words</td><td class="n">0.860</td><td class="n">0.674</td><td class="n">0.672</td><td class="n">0.673</td><td class="n">0.364</td><td class="n">3.2</td></tr>
+<tr><td>Naive Bayes, TF-IDF</td><td class="n">0.859</td><td class="n">0.668</td><td class="n">0.668</td><td class="n">0.667</td><td class="n">0.352</td><td class="n">3.7</td></tr>
+<tr><td>Logistic Regression, Bag of Words</td><td class="n">0.864</td><td class="n">0.679</td><td class="n">0.700</td><td class="n">0.689</td><td class="n">0.394</td><td class="n">43.4</td></tr>
+<tr class="best"><td>Logistic Regression, TF-IDF (best)</td><td class="n">0.869</td><td class="n">0.690</td><td class="n">0.717</td><td class="n">0.702</td><td class="n">0.420</td><td class="n">21.0</td></tr>
+<tr><td>Feedforward neural network, TF-IDF</td><td class="n">0.875</td><td class="n">0.738</td><td class="n">0.608</td><td class="n">0.648</td><td class="n">0.291</td><td class="n">21.0*</td></tr>
+</table>
+<div class="cap">Table 1. Test-set results (9,269 reviews). Precision, recall, and F1 are macro averages over the three classes. Training time is the fit on the training split for the selected setting, without the hyperparameter search. Naive Bayes and Logistic Regression times include fitting the vectorizer and were measured on a 4-CPU x86_64 Linux machine. *The neural network time covers the 18 epochs of weight updates only (the vectorizer was already fitted) and was measured on an 8-CPU arm64 Mac, so it is only roughly comparable. Selected settings: Naive Bayes alpha 0.3 (BoW) and 0.03 (TF-IDF) with equal class priors; Logistic Regression C = 0.1 (BoW) and C = 3 (TF-IDF) with balanced class weights; network checkpoint from epoch 11.</div>
+
+
+<h3>Feature representation and Logistic Regression</h3>
+<p>Every model uses the same text features. Reviews are lowercased, HTML tags such as <code>&lt;br /&gt;</code> are removed, and "n't" is expanded to "not". We keep unigrams and bigrams that appear in at least two training reviews, which gives 192,646 features. Bag of Words stores raw counts. TF-IDF uses 1 + log of the count, scales each term by how rare it is across reviews, and normalizes each review to unit length, so long reviews and very common words carry less weight. Logistic Regression was tuned over C (0.01 to 10) and class weighting. Balanced class weights won for both feature sets because without them the model rarely predicts neutral: at C = 1 on TF-IDF, validation macro-F1 was 0.619 unweighted and 0.686 balanced. TF-IDF preferred weaker regularization (C = 3) than counts (C = 0.1), since its values are small fractions while counts can be large. TF-IDF also trained in half the time (21 s against 43 s), because normalized features let the optimizer converge in fewer steps. The terms with the largest weights toward neutral are "but", "ok", "however", "okay", "not bad", and "not great". The last two exist only because we kept bigrams and expanded "n't".</p>
+
+<figure>
+<img src="confusion_matrices.png" style="width: 80%">
+<figcaption>Figure 1. Test confusion matrices (rows are the actual class, columns the prediction). Each cell shows the count and the share of that actual class.</figcaption>
+</figure>
+
+<h3>Best model and why it wins</h3>
+<p>Logistic Regression with TF-IDF has the highest validation macro-F1 (0.697) and the highest test macro-F1 (0.702), so it is our best model and the default in the app. It finds 44% of neutral reviews, against 35% for Naive Bayes and 21% for the network. Three course ideas explain the ranking.</p>
+<p><b>Feature weighting.</b> Naive Bayes assumes words are independent given the class and multiplies one probability per word. A three-star review that says "great flavor but disappointed with the size" gets pushed hard toward whichever side has more strong words. Logistic Regression is discriminative. It learns one weight per feature directly from the labels, so it can give mixed-review markers such as "but" and "not bad" their own weight toward neutral instead of treating them as weak evidence for positive or negative. With balanced class weights, mistakes on the 7% neutral class cost as much in the loss as mistakes on the 78% positive class.</p>
+<p><b>Capacity.</b> The network has about 6.2 million weights (192,646 inputs into 32 hidden units, then 16, then 3), against 578,000 for Logistic Regression. With only 30,123 training reviews, and 2,206 of them neutral, the extra capacity went into memorizing the training set: training loss fell to 0.002 while validation loss rose after epoch 8 (Figure 2). The network was trained without class weights, so it learned to favor the majority class. It predicts positive for 98% of positive reviews, which gives it the highest accuracy (0.875) and the highest macro precision (0.738), but it labels 62% of neutral reviews and 30% of negative reviews as positive. Accuracy rewards that behavior on this data. Macro-F1 does not.</p>
+<p><b>Word order.</b> All three models see the same bag of unigrams and bigrams, so none of them can use word order beyond two-word phrases. The network adds non-linear combinations of features, but it cannot tell which clause of "good flavor, but the box arrived crushed" decides the rating. A linear model already captures most of what this representation offers, so the extra depth of the network did not pay off. A sequence model such as DistilBERT reads the whole review in order and is the natural next step for neutral reviews.</p>
+
+<h2>2. Deep model analysis</h2>
+<p><b>Architecture.</b> The deep model is a feedforward network (scikit-learn <code>MLPClassifier</code>) on the same 192,646 TF-IDF features. It has two ReLU hidden layers with 32 and 16 units and a three-class softmax output. We chose a small network because the input is very wide and sparse. Even 32 hidden units already give 6.2 million weights, and wider layers would make overfitting on 30,000 reviews worse and the saved model larger. Reusing the TF-IDF vectorizer fitted for Logistic Regression keeps the comparison fair: the only difference between the two models is the classifier. Training used Adam with mini-batches of 1,024 reviews for 18 epochs with seed 46. After each epoch we computed log loss on the training and validation splits and validation macro-F1, and kept the epoch with the best validation macro-F1 (epoch 11, 0.644).</p>
+
+<figure class="keep">
+<img src="ethan/neural_network_loss.png" style="width: 62%">
+<figcaption>Figure 2. Training and validation log loss per epoch for the feedforward network. Validation loss is lowest at epoch 8 (0.341). The dashed line marks the saved checkpoint, chosen by validation macro-F1.</figcaption>
+</figure>
+
+<p><b>Loss curves.</b> Both losses fall until epoch 8. After that the validation loss rises while the training loss keeps falling toward zero, which is overfitting: the network becomes more confident on reviews it has memorized and less calibrated on new ones. Validation macro-F1 still moved up slightly until epoch 11 (0.638 at epoch 8, 0.644 at epoch 11) and then drifted down, so the saved checkpoint sits just past the loss minimum.</p>
+<p><b>Advantage.</b> The network is the most precise model. When it predicts negative it is right 82% of the time, against 72% for Logistic Regression, and its neutral predictions are right 50% of the time, against 40%. Its hidden layers can learn combinations of words that a linear model can only approximate with bigrams, such as a negation that appears several words before the complaint it applies to. For a use where false alarms are costly, such as flagging reviews for a support team, this precision is useful.</p>
+<p><b>Limitation.</b> The network needs more data and care than the classical models. It overfits within a few epochs, it needed checkpoint selection to be usable, and it still misses most neutral reviews because the training set has few of them. It is also harder to interpret: Logistic Regression gives a weight for every word, while the network spreads each word across 32 hidden units. The saved network is 95 MB against about 6 MB for each Logistic Regression model, and it takes longer to load in the app.</p>
+
+<h2>3. Streamlit app</h2>
+<p>The app (<code>app.py</code>) is a single page with three parts. A banner at the top names the best model, chosen by validation macro-F1, with its test accuracy and macro-F1. Below it, an expandable panel, "Model performance on the test set", lists every trained model with its validation macro-F1, test accuracy, test macro-F1, and neutral F1 (Figure 3). The main area has an Input column and a Prediction column. In the Input column the user picks a model from a drop-down list (the best model is starred and selected by default), can tick "Compare all models", can load a positive, neutral, or negative example, and types a review summary and review text. The summary and text are joined the same way as in training. The Prediction column shows the predicted class in a colored box, the confidence, and a bar chart of the three class probabilities. With "Compare all models" ticked it adds a table with every model's prediction and probabilities side by side (Figure 4). The app finds models by reading <code>report/model_results/*.json</code>, so a newly trained model appears without code changes, and it loads the saved pipelines from <code>models/</code> without retraining.</p>
+
+<div class="two">
+<figure><img src="screenshots/app_model_table.png"><figcaption>Figure 3. Best-model banner and the test-set performance table.</figcaption></figure>
+<figure><img src="screenshots/app_compare_models.png"><figcaption>Figure 4. A neutral example with "Compare all models" ticked: all five models predict neutral.</figcaption></figure>
+</div>
+
+<p>Run locally from the repository root with <code>streamlit run app.py</code>. The deployed Streamlit Community Cloud URL is pending.</p>
+
+<h2>4. Reproducibility</h2>
+<p style="text-align:left">The cleaned dataset (<code>data/processed/group_seed46_clean.csv</code>) and the split (<code>data/splits/split_seed46.csv</code>) are committed, so the models can be retrained without downloading anything. To rebuild the dataset from the source, <code>scripts/setup_data.py</code> downloads the Kaggle Amazon Fine Food Reviews file and <code>scripts/prepare_sample.py</code> draws our 50,000-review sample with <code>random_state=46</code> and assigns the labels. Dependencies are pinned in <code>requirements.txt</code> (Python 3.11 or newer): <code>pip install -r requirements.txt</code>. The models are retrained with <code>python scripts/train_naive_bayes.py</code>, <code>python scripts/train_logistic_regression.py</code>, and <code>python scripts/train_neural_network.py</code>, in that order, because the network loads the TF-IDF vectorizer that the Logistic Regression script saves. Each script tunes on the validation split, saves the model with its vectorizer in <code>models/</code>, and writes test metrics, confusion matrices, and training time to <code>report/model_results/</code>. <code>python scripts/compare_models.py</code> then rebuilds Table 1 and Figure 1. The same steps are in README.md under "Reproducing our results".</p>
+
+<h2>5. Individual progress logs</h2>
+<p><b>Aniket Chaudhari.</b> Since M2 I merged the stacked M2 branches into main, improved the shared text cleaning and the Naive Bayes tuning, and updated the app to load every trained model and mark the best one. For M3 I added training time to the Naive Bayes results, wrote <code>scripts/compare_models.py</code> to build the comparison table and confusion matrices from every model's results file, wrote the reproducibility steps in the README, updated the timeline through the final report, and assembled this report. Remaining: the final report and demo slides due November 29.</p>
+<p><b>Sophiya Khurana.</b> Trained Logistic Regression on Bag of Words and TF-IDF (task 1), tuning C and class weighting on the validation set, and saved both models and both fitted vectorizers to <code>models/</code> so the app and the neural network can load them. Logistic Regression with TF-IDF is our best model. Also listed the top TF-IDF terms per class and wrote the feature representation and Logistic Regression part of Section 1. Remaining: the dataset and features section of the final report.</p>
+<p><b>Ethan Brown.</b> Since M2, added the feature visualization and the error analysis of eight misclassified reviews. For M3, trained the feedforward network on TF-IDF (task 2), recorded training and validation loss for each epoch, plotted the loss curves, selected the checkpoint by validation macro-F1, and saved the model and its metrics. Remaining: the error analysis section of the final report.</p>
+<p><b>Lianyu Yang.</b> Built the Streamlit app (<code>app.py</code>), merged on November 21: model selection, example reviews, probability chart, and side-by-side comparison of all models. Remaining: deploy the app to Streamlit Community Cloud and write the system description for the final report.</p>
+<p><b>Shilin Dong.</b> [Shilin to add: work since M2.] Trained the Multinomial Naive Bayes baseline in M2. Remaining: the results section of the final report.</p>
+
+</body>
+</html>
