@@ -8,6 +8,7 @@ import json
 import sys
 from pathlib import Path
 
+import altair as alt
 import joblib
 import pandas as pd
 import streamlit as st
@@ -117,32 +118,43 @@ best_name = max(models, key=lambda name: models[name]['validation_macro_f1']) if
 predict_tab, comparison_tab, overview_tab = st.tabs(['Predict', 'Model Comparison', 'Data Overview'])
 
 with predict_tab:
-    st.subheader('Predict a review')
-    st.caption('Both saved models receive the same review. Summary and review text are joined as in training.')
-    st.session_state.setdefault('review_summary', '')
-    st.session_state.setdefault('review_body', '')
-    st.selectbox('Load an example', ['None', *EXAMPLES], key='example', on_change=load_example)
-    summary = st.text_input('Review summary (optional)', key='review_summary')
-    body = st.text_area('Review text', key='review_body', height=180,
-                        placeholder='Paste or type a food review...')
-    review_text = f'{summary} {body}'.strip()
+    input_col, result_col = st.columns(2, gap='large')
 
-    if len(models) < 2:
-        st.error('At least two saved models are needed. Check models/ and report/model_results/.')
-    else:
-        names = list(models)
-        first_default = 'Logistic Regression (TF-IDF)'
-        first_default = first_default if first_default in models else best_name
-        first_name = st.selectbox('First model', names, index=names.index(first_default))
-        second_choices = [name for name in names if name != first_name]
-        second_default = 'Multinomial Naive Bayes (BoW)'
-        if second_default not in second_choices:
-            second_default = second_choices[0]
-        second_name = st.selectbox('Second model', second_choices,
-                                   index=second_choices.index(second_default))
-        if review_text:
-            for column, name in zip(st.columns(2, gap='large'), (first_name, second_name)):
-                with column, st.container(border=True):
+    with input_col:
+        st.subheader('Predict a review')
+        st.caption('Both saved models receive the same review. Summary and review text are joined as in training.')
+        st.session_state.setdefault('review_summary', '')
+        st.session_state.setdefault('review_body', '')
+        st.selectbox('Load an example', ['None', *EXAMPLES], key='example', on_change=load_example)
+        summary = st.text_input('Review summary (optional)', key='review_summary')
+        body = st.text_area('Review text', key='review_body', height=180,
+                            placeholder='Paste or type a food review...')
+        review_text = f'{summary} {body}'.strip()
+
+        if len(models) < 2:
+            st.error('At least two saved models are needed. Check models/ and report/model_results/.')
+            first_name = second_name = None
+        else:
+            names = list(models)
+            first_default = 'Logistic Regression (TF-IDF)'
+            first_default = first_default if first_default in models else best_name
+            first_name = st.selectbox('First model', names, index=names.index(first_default))
+            second_choices = [name for name in names if name != first_name]
+            second_default = 'Multinomial Naive Bayes (BoW)'
+            if second_default not in second_choices:
+                second_default = second_choices[0]
+            second_name = st.selectbox('Second model', second_choices,
+                                       index=second_choices.index(second_default))
+
+    with result_col:
+        st.subheader('Predictions')
+        if len(models) < 2:
+            st.info('Predictions appear here once two models are available.')
+        elif not review_text:
+            st.info('Enter or load a review to see both predictions.')
+        else:
+            for name in (first_name, second_name):
+                with st.container(border=True):
                     probabilities = model_probabilities(name, review_text, models)
                     prediction = max(probabilities, key=probabilities.get)
                     st.subheader(name)
@@ -150,8 +162,6 @@ with predict_tab:
                     st.caption(f'Highest class probability: {probabilities[prediction]:.1%}')
                     for label in LABELS:
                         st.progress(probabilities[label], text=f'{label.title()}: {probabilities[label]:.1%}')
-        else:
-            st.info('Enter or load a review to see both predictions.')
 
 with comparison_tab:
     st.subheader('Model comparison')
@@ -195,7 +205,6 @@ with comparison_tab:
         st.dataframe(class_table.style.format({'Precision': '{:.3f}', 'Recall': '{:.3f}', 'F1': '{:.3f}'}),
                      hide_index=True, width='stretch')
         st.markdown('**Confusion matrix**')
-        st.caption('Rows are actual labels; columns are predicted labels.')
         matrix = pd.DataFrame(selected_matrix, index=[f'Actual {label}' for label in LABELS],
                               columns=[f'Predicted {label}' for label in LABELS])
         st.dataframe(matrix, width='stretch')
@@ -210,14 +219,22 @@ with overview_tab:
     st.caption('The sample is drawn with seed 46. Duplicate and unusable reviews are removed before splitting.')
     st.markdown('**Clean review sentiments**')
     clean_counts = counts[counts['stage'] == 'clean'].set_index('sentiment').reindex(LABELS)
-    st.bar_chart(clean_counts['count'])
+    sentiment_chart = (
+        alt.Chart(clean_counts.reset_index())
+        .mark_bar()
+        .encode(
+            x=alt.X('sentiment:N', sort=LABELS, title=None, axis=alt.Axis(labelAngle=0)),
+            y=alt.Y('count:Q', title=None),
+        )
+    )
+    st.altair_chart(sentiment_chart, width='stretch')
     st.dataframe(clean_counts.reset_index().rename(columns={'sentiment': 'Sentiment',
                                                               'count': 'Reviews', 'percent': 'Percent (%)'})
                  [['Sentiment', 'Reviews', 'Percent (%)']], hide_index=True, width='stretch')
     st.markdown('**Shared train / validation / test split**')
     split_table = pd.DataFrame({'Split': ['train', 'validation', 'test'],
                                 'Reviews': [int(split_counts.get(name, 0))
-                                            for name in ('train', 'validation', 'test')]})
+                                            for name in ('train', 'val', 'test')]})
     st.dataframe(split_table, hide_index=True, width='stretch')
     st.caption('Labels: 1–2 stars → negative; 3 stars → neutral; 4–5 stars → positive. '
                'The models are fitted on the training split and evaluated on the test split.')
