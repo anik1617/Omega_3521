@@ -5,6 +5,9 @@ feature engineering, classical and deep/modern model comparisons, and a deployed
 Streamlit application. Multinomial Naive Bayes training is implemented; the
 application and other models are not implemented yet.
 
+**Already have the repo?** After pulling the DistilBERT update, follow
+[SETUP.md](SETUP.md) to install Git LFS, download the model, and update packages.
+
 ## Team
 
 | Member | Primary role |
@@ -147,6 +150,17 @@ of `scripts/compare_models.py`).
    ```
    Do not rerun `scripts/make_splits.py`; the committed split is the one every
    model is evaluated on.
+
+   The PyTorch models are meant for a GPU: install the CUDA build of torch first
+   (see `requirements-gpu.txt`). The fine-tuned DistilBERT is saved in float16 to
+   `models/distilbert_seed46/` and its weights file is stored with Git LFS, so run
+   `git lfs install` and `git lfs pull` after cloning; the app loads it on the CPU.
+   The other PyTorch models' weights are gitignored and not shown in the app; their
+   metrics are in `report/model_results/` and the comparison table.
+   ```powershell
+   python scripts/train_torch_models.py   # feedforward net with dropout and early stopping (BoW and TF-IDF), 1D CNN, averaged word embeddings
+   python scripts/train_distilbert.py     # fine-tuned DistilBERT (about 5 min per epoch on an RTX 3060 Laptop)
+   ```
 4. **Run the app:** `streamlit run app.py`. The saved models in `models/` are
    loaded directly, so the app does not retrain anything.
 

@@ -1,0 +1,104 @@
+{
+  "model": "DistilBERT fine-tuned",
+  "owner": "Aniket Chaudhari",
+  "split": "data/splits/split_seed46.csv",
+  "rows": {
+    "train": 30123,
+    "validation": 6952,
+    "test": 9269
+  },
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "confusion_matrix_axes": "rows=actual, columns=predicted",
+  "classifier_settings": {
+    "checkpoint": "distilbert-base-uncased",
+    "head": "linear classification head on the [CLS] token",
+    "fine_tuned_layers": "all",
+    "max_length_tokens": 256,
+    "share_of_training_reviews_truncated": 0.0774,
+    "batch_size": 16,
+    "epochs": 3,
+    "optimizer": "AdamW",
+    "learning_rate": 2e-05,
+    "weight_decay": 0.01,
+    "schedule": "linear warmup over 10% of steps, then linear decay",
+    "mixed_precision": "float16 autocast",
+    "loss_weighting": "none",
+    "random_seed": 46,
+    "saved_weights": "float16 copy of the kept epoch (test scores are from this copy)"
+  },
+  "selected": {
+    "epoch": 3,
+    "validation_macro_f1": 0.7518394130462793
+  },
+  "test_models": {
+    "distilbert_tokens": {
+      "model_path": "models/distilbert_seed46",
+      "validation_macro_f1": 0.7518394130462793,
+      "training_time_seconds": 676.2,
+      "selected_epoch": 3,
+      "classification_report": {
+        "negative": {
+          "precision": 0.8218773096821878,
+          "recall": 0.8134601316752011,
+          "f1-score": 0.8176470588235294,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.4921875,
+          "recall": 0.4639175257731959,
+          "f1-score": 0.47763457164518575,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.9605552501374381,
+          "recall": 0.9676034888550464,
+          "f1-score": 0.9640664873439547,
+          "support": 7223.0
+        },
+        "accuracy": 0.9079728126011436,
+        "macro avg": {
+          "precision": 0.7582066866065419,
+          "recall": 0.7483270487678144,
+          "f1-score": 0.75311603927089,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.905792660112015,
+          "recall": 0.9079728126011436,
+          "f1-score": 0.9068388867886753,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          1112,
+          168,
+          87
+        ],
+        [
+          164,
+          315,
+          200
+        ],
+        [
+          77,
+          157,
+          6989
+        ]
+      ]
+    }
+  },
+  "training_time_scope": "GPU time in the fine-tuning loop over all 3 epochs; excludes tokenization and validation passes",
+  "machine": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "cpus": 20,
+    "python": "3.11.0",
+    "torch": "2.10.0+cu128",
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU"
+  }
+}

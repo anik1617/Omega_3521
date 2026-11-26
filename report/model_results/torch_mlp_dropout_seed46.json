@@ -1,0 +1,174 @@
+{
+  "model": "Feedforward neural network, dropout",
+  "owner": "Aniket Chaudhari",
+  "split": "data/splits/split_seed46.csv",
+  "rows": {
+    "train": 30123,
+    "validation": 6952,
+    "test": 9269
+  },
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "confusion_matrix_axes": "rows=actual, columns=predicted",
+  "classifier_settings": {
+    "optimizer": "Adam",
+    "max_epochs": 30,
+    "early_stopping_patience": 3,
+    "early_stopping_metric": "validation macro-F1",
+    "loss_weightings_tried": [
+      "none",
+      "sqrt"
+    ],
+    "random_seed": 46,
+    "framework": "PyTorch 2.10.0+cu128",
+    "hidden_layers": [
+      64,
+      32
+    ],
+    "activation": "relu",
+    "dropout": 0.5,
+    "batch_size": 256,
+    "learning_rate": 0.001,
+    "inputs": "shared vectorizers in models/vectorizer_*_seed46.joblib"
+  },
+  "test_models": {
+    "tfidf": {
+      "model_path": "models/torch/mlp-tfidf_seed46.pt",
+      "validation_macro_f1": 0.68708984949075,
+      "training_time_seconds": 73.4,
+      "selected_epoch": 5,
+      "epochs_run": 8,
+      "loss_weighting": "sqrt",
+      "validation_macro_f1_by_weighting": {
+        "none": 0.6781978207665805,
+        "sqrt": 0.68708984949075
+      },
+      "vocabulary_size": 192646,
+      "classification_report": {
+        "negative": {
+          "precision": 0.7969130787977254,
+          "recall": 0.717629846378932,
+          "f1-score": 0.7551963048498845,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.40416047548291234,
+          "recall": 0.4005891016200295,
+          "f1-score": 0.40236686390532544,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.9331975560081467,
+          "recall": 0.9515436799113941,
+          "f1-score": 0.9422813271181794,
+          "support": 7223.0
+        },
+        "accuracy": 0.8766857266156004,
+        "macro avg": {
+          "precision": 0.7114237034295948,
+          "recall": 0.6899208759701185,
+          "f1-score": 0.6999481652911298,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.8743436280738194,
+          "recall": 0.8766857266156004,
+          "f1-score": 0.875138469640319,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          981,
+          165,
+          221
+        ],
+        [
+          136,
+          272,
+          271
+        ],
+        [
+          114,
+          236,
+          6873
+        ]
+      ]
+    },
+    "bag_of_words": {
+      "model_path": "models/torch/mlp-bag_of_words_seed46.pt",
+      "validation_macro_f1": 0.699440434628913,
+      "training_time_seconds": 55.323,
+      "selected_epoch": 3,
+      "epochs_run": 6,
+      "loss_weighting": "sqrt",
+      "validation_macro_f1_by_weighting": {
+        "none": 0.6868734714180834,
+        "sqrt": 0.699440434628913
+      },
+      "vocabulary_size": 192646,
+      "classification_report": {
+        "negative": {
+          "precision": 0.7306094182825484,
+          "recall": 0.7717629846378932,
+          "f1-score": 0.7506225542511562,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.37167070217917675,
+          "recall": 0.4521354933726068,
+          "f1-score": 0.4079734219269103,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.9515645092156022,
+          "recall": 0.9220545479717569,
+          "f1-score": 0.936577134017719,
+          "support": 7223.0
+        },
+        "accuracy": 0.8654655302621642,
+        "macro avg": {
+          "precision": 0.6846148765591091,
+          "recall": 0.715317675327419,
+          "f1-score": 0.6983910367319285,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.8764977809511489,
+          "recall": 0.8654655302621642,
+          "f1-score": 0.8704295635084354,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          1055,
+          178,
+          134
+        ],
+        [
+          167,
+          307,
+          205
+        ],
+        [
+          222,
+          341,
+          6660
+        ]
+      ]
+    }
+  },
+  "training_time_scope": "GPU time in the training loop for the kept loss weighting, over every epoch run including the ones after the best epoch; excludes validation passes and the weighting search",
+  "machine": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "cpus": 20,
+    "python": "3.11.0",
+    "torch": "2.10.0+cu128",
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU"
+  }
+}

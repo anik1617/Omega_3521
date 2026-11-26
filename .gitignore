@@ -228,3 +228,7 @@ data/processed/*
 # Local AI assistant instructions
 CLAUDE.md
 AGENTS.md
+
+# GPU model weights (too large for GitHub; retrain with the scripts)
+models/torch/
+models/distilbert*_checkpoint/

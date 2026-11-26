@@ -1,0 +1,5 @@
+# Extra notes for training the PyTorch models (scripts/train_torch_models.py and
+# scripts/train_distilbert.py) on a GPU. requirements.txt already pins torch and
+# transformers; for training, install the CUDA build of torch first, for example:
+# pip install torch==2.10.0 --index-url https://download.pytorch.org/whl/cu128
+-r requirements.txt

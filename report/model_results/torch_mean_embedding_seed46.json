@@ -1,0 +1,111 @@
+{
+  "model": "Averaged word embeddings",
+  "owner": "Aniket Chaudhari",
+  "split": "data/splits/split_seed46.csv",
+  "rows": {
+    "train": 30123,
+    "validation": 6952,
+    "test": 9269
+  },
+  "labels": [
+    "negative",
+    "neutral",
+    "positive"
+  ],
+  "confusion_matrix_axes": "rows=actual, columns=predicted",
+  "classifier_settings": {
+    "optimizer": "Adam",
+    "max_epochs": 30,
+    "early_stopping_patience": 3,
+    "early_stopping_metric": "validation macro-F1",
+    "loss_weightings_tried": [
+      "none",
+      "sqrt"
+    ],
+    "random_seed": 46,
+    "framework": "PyTorch 2.10.0+cu128",
+    "embedding_dim": 128,
+    "embeddings": "learned from scratch",
+    "min_word_count": 2,
+    "max_tokens": 300,
+    "dropout": 0.5,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "hidden_layer": 64,
+    "pooling": "mean over words"
+  },
+  "test_models": {
+    "word_embeddings": {
+      "model_path": "models/torch/mean_embedding_seed46.pt",
+      "validation_macro_f1": 0.6724420534179067,
+      "training_time_seconds": 107.468,
+      "selected_epoch": 16,
+      "epochs_run": 19,
+      "loss_weighting": "sqrt",
+      "validation_macro_f1_by_weighting": {
+        "none": 0.6495356096681993,
+        "sqrt": 0.6724420534179067
+      },
+      "vocabulary_size": 20909,
+      "classification_report": {
+        "negative": {
+          "precision": 0.7070063694267515,
+          "recall": 0.7307973664959766,
+          "f1-score": 0.718705035971223,
+          "support": 1367.0
+        },
+        "neutral": {
+          "precision": 0.34597701149425286,
+          "recall": 0.44329896907216493,
+          "f1-score": 0.38863783085861847,
+          "support": 679.0
+        },
+        "positive": {
+          "precision": 0.9450329229888348,
+          "recall": 0.9140246434999307,
+          "f1-score": 0.9292701808712788,
+          "support": 7223.0
+        },
+        "accuracy": 0.8525191498543532,
+        "macro avg": {
+          "precision": 0.666005434636613,
+          "recall": 0.6960403263560241,
+          "f1-score": 0.6788710159003735,
+          "support": 9269.0
+        },
+        "weighted avg": {
+          "precision": 0.8660447621706031,
+          "recall": 0.8525191498543532,
+          "f1-score": 0.8586118661947255,
+          "support": 9269.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          999,
+          188,
+          180
+        ],
+        [
+          174,
+          301,
+          204
+        ],
+        [
+          240,
+          381,
+          6602
+        ]
+      ]
+    }
+  },
+  "training_time_scope": "GPU time in the training loop for the kept loss weighting, over every epoch run including the ones after the best epoch; excludes validation passes and the weighting search",
+  "machine": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "processor": "AMD64",
+    "cpus": 20,
+    "python": "3.11.0",
+    "torch": "2.10.0+cu128",
+    "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU"
+  }
+}

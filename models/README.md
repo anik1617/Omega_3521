@@ -20,3 +20,9 @@ Written by `scripts/train_logistic_regression.py` (Sophiya, M3 task 1):
 Each model file is a scikit-learn `Pipeline` that takes raw review text (Summary and Text
 joined by a space). The vectorizers call `data_utils.clean_text`, so put the
 repository root on `sys.path` before `joblib.load`.
+
+Written by `scripts/train_distilbert.py`:
+
+- `distilbert_seed46/`: fine-tuned DistilBERT (best model by validation macro-F1), saved in float16
+  with its tokenizer. `model.safetensors` (134 MB) is stored with Git LFS. The app loads the folder
+  with `transformers` instead of `joblib`.
