@@ -1,9 +1,7 @@
 # Group Omega — CSE 3521
 
-Amazon food review sentiment analysis project. Planned deliverables include text
-feature engineering, classical and deep/modern model comparisons, and a deployed
-Streamlit application. Multinomial Naive Bayes training is implemented; the
-application and other models are not implemented yet.
+Amazon food review sentiment analysis project with text feature engineering,
+classical and neural model comparisons, and a Streamlit application.
 
 **Already have the repo?** After pulling the DistilBERT update, follow
 [SETUP.md](SETUP.md) to install Git LFS, download the model, and update packages.
@@ -99,11 +97,22 @@ smoothing on TF-IDF than on counts. With the earlier alpha grid (0.1 to 10)
 TF-IDF looked far worse than Bag of Words; with small alpha the two are close.
 
 ## Streamlit App
-Run `streamlit run app.py` to open the app. It loads every trained model listed in
-`report/model_results/*.json` (each entry's `model_path`), marks the one with the
-best validation macro-F1 as the best model, and shows a test-set metrics table.
-To add a
-model, have its training script write a results file in the same format as
+Install dependencies with `pip install -r requirements.txt`, then run
+`streamlit run app.py` from the repository root. The app has three tabs:
+
+- **Predict:** enter a review and compare two saved models side by side. The
+  default pair is Logistic Regression with TF-IDF and Naive Bayes with BoW.
+- **Model Comparison:** view test metrics, the majority-class baseline,
+  per-class scores, and confusion matrices. The best model is selected by
+  validation macro-F1.
+- **Data Overview:** view review counts, sentiment distribution, and the shared
+  train/validation/test split.
+
+The app discovers trained models from `report/model_results/*.json` and loads
+the saved models in `models/`. It does not retrain them. DistilBERT requires
+the Git LFS weights and PyTorch packages described in [SETUP.md](SETUP.md);
+models with unavailable weights are omitted from the Predict selectors. To add
+a model, have its training script write a results file in the same format as
 `scripts/train_naive_bayes.py`.
 
 ## Model comparison
