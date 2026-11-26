@@ -25,13 +25,14 @@
   .two { display: flex; gap: 10pt; }
   .two figure { flex: 1; }
   .keep { page-break-inside: avoid; }
+  a { color: #1a4f9c; }
 </style>
 </head>
 <body>
 
 <h1>Amazon Food Review Sentiment: Milestone 3 Report</h1>
 <div class="sub">CSE 3521, Group Omega: Aniket Chaudhari, Sophiya Khurana, Ethan Brown, Lianyu Yang, Shilin Dong<br>
-Repository: github.com/anik1617/Omega_3521 &nbsp;·&nbsp; Live app: omega3521-63vkkswjncvfwaywsebfbb.streamlit.app &nbsp;·&nbsp; Local: <code>streamlit run app.py</code></div>
+Repository: <a href="https://github.com/anik1617/Omega_3521">github.com/anik1617/Omega_3521</a> &nbsp;·&nbsp; Local: <code>streamlit run app.py</code><br>Live app: <a href="https://omega3521-63vkkswjncvfwaywsebfbb.streamlit.app/">omega3521-63vkkswjncvfwaywsebfbb.streamlit.app</a></div>
 
 <p>We classify Amazon Fine Food reviews as negative (1 to 2 stars), neutral (3 stars), or positive (4 to 5 stars). All models use the same 46,344-review seed-46 dataset and the same stratified split: 30,123 training, 6,952 validation, and 9,269 test reviews. The model input is the review summary and body joined by a space. Hyperparameters and checkpoints were chosen on the validation split only, and each model was scored once on the test split. Positive reviews make up 78% of the data and neutral only 7%, so we rank models by macro-F1, which weights the three classes equally, rather than by accuracy.</p>
 
@@ -87,7 +88,7 @@ Repository: github.com/anik1617/Omega_3521 &nbsp;·&nbsp; Live app: omega3521-63
 <figure class="keep"><img src="screenshots/app_predict_tab.png" style="width: 100%"><figcaption>Figure 3. Predict tab (deployed app).</figcaption></figure>
 <figure class="keep"><img src="screenshots/app_compare_tab.png" style="width: 100%"><figcaption>Figure 4. Model Comparison tab.</figcaption></figure>
 
-<p>Run locally from the repository root with <code>pip install -r requirements.txt</code>, <code>git lfs pull</code> (for the DistilBERT weights), and <code>streamlit run app.py</code>. The app is deployed on Streamlit Community Cloud at <code>https://omega3521-63vkkswjncvfwaywsebfbb.streamlit.app/</code>.</p>
+<p>Run locally from the repository root with <code>pip install -r requirements.txt</code>, <code>git lfs pull</code> (for the DistilBERT weights), and <code>streamlit run app.py</code>. The app is deployed on Streamlit Community Cloud at <a href="https://omega3521-63vkkswjncvfwaywsebfbb.streamlit.app/">omega3521-63vkkswjncvfwaywsebfbb.streamlit.app</a>.</p>
 
 <h2>4. Reproducibility</h2>
 <p style="text-align:left">The cleaned dataset (<code>data/processed/group_seed46_clean.csv</code>) and the split (<code>data/splits/split_seed46.csv</code>) are committed, so the models can be retrained without downloading anything. To rebuild the dataset from the source, <code>scripts/setup_data.py</code> downloads the Kaggle Amazon Fine Food Reviews file and <code>scripts/prepare_sample.py</code> draws our 50,000-review sample with <code>random_state=46</code> and assigns the labels. Dependencies are pinned in <code>requirements.txt</code> (Python 3.11 or newer): <code>pip install -r requirements.txt</code>. The classical models and the 32-16 network are retrained with <code>python scripts/train_naive_bayes.py</code>, <code>python scripts/train_logistic_regression.py</code>, and <code>python scripts/train_neural_network.py</code> (add <code>--features bag_of_words</code> for the Bag of Words network), in that order, because the network loads the vectorizers that the Logistic Regression script saves. The GPU models are retrained with <code>python scripts/train_torch_models.py</code> (dropout network, 1D CNN, averaged embeddings) and <code>python scripts/train_distilbert.py</code> after installing the CUDA build of PyTorch from <code>requirements-gpu.txt</code>. Each script tunes on the validation split, saves the model in <code>models/</code>, and writes test metrics, confusion matrices, and training time to <code>report/model_results/</code>. <code>python scripts/compare_models.py</code> then rebuilds Table 1 and Figure 1. The same steps are in README.md under "Reproducing our results".</p>
