@@ -26,6 +26,9 @@ EXAMPLES = {
     'Neutral': ('It is okay', 'Tastes fine but nothing special. Probably will not buy again at this price.'),
     'Negative': ('Stale and broken', 'Arrived crushed and tasted stale. Very disappointed.'),
 }
+# One muted color per class, reused by every chart in the app.
+COLORS = {'negative': '#b4533a', 'neutral': '#9a8f6f', 'positive': '#3f7a5c'}
+CLASS_SCALE = alt.Scale(domain=LABELS, range=[COLORS[label] for label in LABELS])
 
 
 @st.cache_resource
@@ -110,131 +113,184 @@ def load_example():
     st.session_state.review_body = body
 
 
-st.set_page_config(page_title='Omega Review Sentiment', layout='wide')
-st.title('Amazon Food Review Sentiment')
-st.caption('CSE 3521 · Group Omega')
+def probability_chart(probabilities):
+    frame = pd.DataFrame({'sentiment': LABELS, 'probability': [probabilities[label] for label in LABELS]})
+    bars = alt.Chart(frame).encode(
+        y=alt.Y('sentiment:N', sort=LABELS, title=None,
+                axis=alt.Axis(labelAngle=0, ticks=False, domain=False, labelOverlap=False, labelFontSize=12)),
+        x=alt.X('probability:Q', scale=alt.Scale(domain=[0, 1.12]), title=None, axis=None),
+    )
+    chart = bars.mark_bar(height=16, cornerRadiusEnd=2).encode(
+        color=alt.Color('sentiment:N', scale=CLASS_SCALE, legend=None))
+    labels = bars.mark_text(align='left', dx=4, fontSize=12).encode(text=alt.Text('probability:Q', format='.0%'))
+    return (chart + labels).properties(height=96)
+
+
+def confusion_chart(matrix):
+    # Shade by share of each actual class, so the small neutral row is as readable as the large positive one.
+    cells = pd.DataFrame([{'actual': actual, 'predicted': predicted, 'count': matrix[i][j],
+                           'share': matrix[i][j] / sum(matrix[i])}
+                          for i, actual in enumerate(LABELS) for j, predicted in enumerate(LABELS)])
+    base = alt.Chart(cells).encode(
+        x=alt.X('predicted:N', sort=LABELS, title='Predicted', axis=alt.Axis(labelAngle=0, orient='top')),
+        y=alt.Y('actual:N', sort=LABELS, title='Actual'),
+    )
+    heat = base.mark_rect().encode(
+        color=alt.Color('share:Q', scale=alt.Scale(domain=[0, 1], range=['#f1efe9', '#2f5d50']), legend=None))
+    text = base.mark_text(fontSize=14).encode(
+        text='count:Q',
+        color=alt.condition(alt.datum.share > 0.5, alt.value('white'), alt.value('#222')))
+    return (heat + text).properties(height=240)
+
+
+st.set_page_config(page_title='Food Review Sentiment', layout='wide')
+st.markdown("""
+<style>
+.block-container {max-width: 1100px; padding-top: 2.2rem;}
+h1 {font-size: 2rem !important; margin-bottom: 0 !important;}
+.verdict {font-size: 1.6rem; font-weight: 600; margin: 0.1rem 0 0.2rem;}
+.model-name {font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: #6b6b6b;}
+.agree {color: #6b6b6b; font-size: 0.95rem; margin-top: 0.5rem;}
+</style>
+""", unsafe_allow_html=True)
+
 models, baseline = load_results()
 best_name = max(models, key=lambda name: models[name]['validation_macro_f1']) if models else None
+
+st.title('Food review sentiment')
+st.markdown(f'CSE 3521, Group Omega. {len(models)} models trained on Amazon Fine Food reviews, '
+            'each labeling a review as negative, neutral or positive.')
 predict_tab, comparison_tab, overview_tab = st.tabs(['Predict', 'Model Comparison', 'Data Overview'])
 
 with predict_tab:
-    input_col, result_col = st.columns(2, gap='large')
+    input_col, result_col = st.columns([1.1, 1], gap='large')
 
     with input_col:
-        st.subheader('Predict a review')
-        st.caption('Both saved models receive the same review. Summary and review text are joined as in training.')
         st.session_state.setdefault('review_summary', '')
         st.session_state.setdefault('review_body', '')
-        st.selectbox('Load an example', ['None', *EXAMPLES], key='example', on_change=load_example)
-        summary = st.text_input('Review summary (optional)', key='review_summary')
-        body = st.text_area('Review text', key='review_body', height=180,
-                            placeholder='Paste or type a food review...')
+        st.selectbox('Example', ['None', *EXAMPLES], key='example', on_change=load_example)
+        summary = st.text_input('Summary', key='review_summary', placeholder='Optional, like a review title')
+        body = st.text_area('Review', key='review_body', height=170, placeholder='Type or paste a review')
         review_text = f'{summary} {body}'.strip()
 
         if len(models) < 2:
-            st.error('At least two saved models are needed. Check models/ and report/model_results/.')
+            st.error('Need at least two saved models. Check models/ and report/model_results/.')
             first_name = second_name = None
         else:
             names = list(models)
             first_default = 'Logistic Regression (TF-IDF)'
             first_default = first_default if first_default in models else best_name
-            first_name = st.selectbox('First model', names, index=names.index(first_default))
+            first_name = st.selectbox('Model A', names, index=names.index(first_default))
             second_choices = [name for name in names if name != first_name]
             second_default = 'Multinomial Naive Bayes (BoW)'
             if second_default not in second_choices:
                 second_default = second_choices[0]
-            second_name = st.selectbox('Second model', second_choices,
+            second_name = st.selectbox('Model B', second_choices,
                                        index=second_choices.index(second_default))
 
     with result_col:
-        st.subheader('Predictions')
         if len(models) < 2:
-            st.info('Predictions appear here once two models are available.')
+            pass
         elif not review_text:
-            st.info('Enter or load a review to see both predictions.')
+            st.caption('Predictions show up here once there is some review text.')
         else:
+            verdicts = []
             for name in (first_name, second_name):
+                probabilities = model_probabilities(name, review_text, models)
+                prediction = max(probabilities, key=probabilities.get)
+                verdicts.append(prediction)
                 with st.container(border=True):
-                    probabilities = model_probabilities(name, review_text, models)
-                    prediction = max(probabilities, key=probabilities.get)
-                    st.subheader(name)
-                    st.metric('Predicted sentiment', prediction.title())
-                    st.caption(f'Highest class probability: {probabilities[prediction]:.1%}')
-                    for label in LABELS:
-                        st.progress(probabilities[label], text=f'{label.title()}: {probabilities[label]:.1%}')
+                    st.markdown(f'<div class="model-name">{name}</div>'
+                                f'<div class="verdict" style="color:{COLORS[prediction]}">{prediction.title()}</div>',
+                                unsafe_allow_html=True)
+                    st.altair_chart(probability_chart(probabilities), width='stretch')
+            if verdicts[0] == verdicts[1]:
+                st.markdown(f'<div class="agree">Both models say {verdicts[0]}.</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="agree">The models disagree: {verdicts[0]} vs. {verdicts[1]}.</div>',
+                            unsafe_allow_html=True)
 
 with comparison_tab:
-    st.subheader('Model comparison')
     if not models:
-        st.info('No saved models found in report/model_results/.')
+        st.caption('No saved models found in report/model_results/.')
     else:
         best = models[best_name]
-        st.success(f'Best on validation macro-F1: **{best_name}** ({best["validation_macro_f1"]:.3f}).')
+        st.markdown(f'{best_name} has the highest validation macro-F1 ({best["validation_macro_f1"]:.3f}). '
+                    'We pick models on validation; every other column is the test set.')
         rows = []
         for name, info in models.items():
             report = info['report']
-            rows.append({'Model': name, 'Validation macro-F1': info['validation_macro_f1'],
-                         'Test accuracy': report['accuracy'],
-                         'Test macro precision': report['macro avg']['precision'],
-                         'Test macro recall': report['macro avg']['recall'],
-                         'Test macro-F1': report['macro avg']['f1-score'],
+            rows.append({'Model': name, 'Val macro-F1': info['validation_macro_f1'],
+                         'Accuracy': report['accuracy'],
+                         'Precision': report['macro avg']['precision'],
+                         'Recall': report['macro avg']['recall'],
+                         'Macro-F1': report['macro avg']['f1-score'],
                          'Neutral F1': report['neutral']['f1-score']})
         if baseline:
             report = baseline['classification_report']
-            rows.append({'Model': f'Majority-class baseline ({baseline["predicted_class"]})',
-                         'Validation macro-F1': None, 'Test accuracy': report['accuracy'],
-                         'Test macro precision': report['macro avg']['precision'],
-                         'Test macro recall': report['macro avg']['recall'],
-                         'Test macro-F1': report['macro avg']['f1-score'],
+            rows.append({'Model': f'Majority class ({baseline["predicted_class"]})',
+                         'Val macro-F1': None, 'Accuracy': report['accuracy'],
+                         'Precision': report['macro avg']['precision'],
+                         'Recall': report['macro avg']['recall'],
+                         'Macro-F1': report['macro avg']['f1-score'],
                          'Neutral F1': report['neutral']['f1-score']})
-        table = pd.DataFrame(rows).sort_values('Validation macro-F1', ascending=False, na_position='last')
-        st.dataframe(table.style.format({column: '{:.3f}' for column in table.columns if column != 'Model'},
-                                        na_rep='—'), hide_index=True, width='stretch')
-        st.caption('The best model is selected using validation macro-F1. All other scores use the test set.')
+        table = pd.DataFrame(rows).astype({'Val macro-F1': float}).sort_values('Val macro-F1', ascending=False, na_position='last')
+        # Format as text so the baseline's missing validation score shows as a dash, not "None".
+        for column in table.columns[1:]:
+            table[column] = table[column].map(lambda value: '–' if pd.isna(value) else f'{value:.3f}')
+        st.dataframe(
+            table.style.set_properties(subset=table.columns[1:], **{'text-align': 'right'})
+            .apply(lambda row: ['font-weight: 600' if row['Model'] == best_name else '' for _ in row], axis=1),
+            hide_index=True, width='stretch')
+        st.caption('Precision, recall and F1 are macro averages over the three classes.')
 
-        choices = [*models, *(['Majority-class baseline'] if baseline else [])]
-        selected = st.selectbox('Inspect test results for', choices)
-        selected_report = baseline['classification_report'] if selected == 'Majority-class baseline' else models[selected]['report']
-        selected_matrix = baseline['confusion_matrix'] if selected == 'Majority-class baseline' else models[selected]['confusion_matrix']
-        st.markdown('**Per-class test scores**')
-        class_table = pd.DataFrame([
-            {'Sentiment': label.title(), 'Precision': selected_report[label]['precision'],
-             'Recall': selected_report[label]['recall'], 'F1': selected_report[label]['f1-score'],
-             'Support': selected_report[label]['support']} for label in LABELS
-        ])
-        st.dataframe(class_table.style.format({'Precision': '{:.3f}', 'Recall': '{:.3f}', 'F1': '{:.3f}'}),
-                     hide_index=True, width='stretch')
-        st.markdown('**Confusion matrix**')
-        matrix = pd.DataFrame(selected_matrix, index=[f'Actual {label}' for label in LABELS],
-                              columns=[f'Predicted {label}' for label in LABELS])
-        st.dataframe(matrix, width='stretch')
+        st.markdown('#### Per-class results')
+        choices = [*models, *(['Majority class'] if baseline else [])]
+        selected = st.selectbox('Model', choices, label_visibility='collapsed')
+        is_baseline = selected == 'Majority class'
+        selected_report = baseline['classification_report'] if is_baseline else models[selected]['report']
+        selected_matrix = baseline['confusion_matrix'] if is_baseline else models[selected]['confusion_matrix']
+        class_col, matrix_col = st.columns([1, 1], gap='large')
+        with class_col:
+            class_table = pd.DataFrame([
+                {'Class': label, 'Precision': selected_report[label]['precision'],
+                 'Recall': selected_report[label]['recall'], 'F1': selected_report[label]['f1-score'],
+                 'Reviews': int(selected_report[label]['support'])} for label in LABELS
+            ])
+            st.dataframe(class_table.style.format({'Precision': '{:.3f}', 'Recall': '{:.3f}', 'F1': '{:.3f}'}),
+                         hide_index=True, width='stretch')
+            st.caption('Test set scores for each class. Matrix cells are shaded by the share of each actual class.')
+        with matrix_col:
+            st.altair_chart(confusion_chart(selected_matrix), width='stretch')
 
 with overview_tab:
-    st.subheader('Data overview')
     stats, counts, split_counts = load_data_overview()
     sample_metric, clean_metric, removed_metric = st.columns(3)
-    sample_metric.metric('Sampled reviews', f'{stats["sample_rows"]:,}')
-    clean_metric.metric('Clean reviews', f'{stats["clean_rows"]:,}')
-    removed_metric.metric('Removed during cleaning', f'{stats["sample_rows"] - stats["clean_rows"]:,}')
-    st.caption('The sample is drawn with seed 46. Duplicate and unusable reviews are removed before splitting.')
-    st.markdown('**Clean review sentiments**')
-    clean_counts = counts[counts['stage'] == 'clean'].set_index('sentiment').reindex(LABELS)
-    sentiment_chart = (
-        alt.Chart(clean_counts.reset_index())
-        .mark_bar()
-        .encode(
+    sample_metric.metric('Sampled', f'{stats["sample_rows"]:,}')
+    clean_metric.metric('After cleaning', f'{stats["clean_rows"]:,}')
+    removed_metric.metric('Removed', f'{stats["sample_rows"] - stats["clean_rows"]:,}')
+    st.caption('A 50,000 review sample drawn with seed 46. Duplicates and unusable rows are dropped before '
+               'splitting. 1 to 2 stars is negative, 3 is neutral, 4 to 5 is positive.')
+
+    chart_col, split_col = st.columns([1.4, 1], gap='large')
+    clean_counts = counts[counts['stage'] == 'clean'].set_index('sentiment').reindex(LABELS).reset_index()
+    with chart_col:
+        st.markdown('#### Sentiment after cleaning')
+        bars = alt.Chart(clean_counts).encode(
             x=alt.X('sentiment:N', sort=LABELS, title=None, axis=alt.Axis(labelAngle=0)),
-            y=alt.Y('count:Q', title=None),
+            y=alt.Y('count:Q', title=None, axis=alt.Axis(grid=False)),
         )
-    )
-    st.altair_chart(sentiment_chart, width='stretch')
-    st.dataframe(clean_counts.reset_index().rename(columns={'sentiment': 'Sentiment',
-                                                              'count': 'Reviews', 'percent': 'Percent (%)'})
-                 [['Sentiment', 'Reviews', 'Percent (%)']], hide_index=True, width='stretch')
-    st.markdown('**Shared train / validation / test split**')
-    split_table = pd.DataFrame({'Split': ['train', 'validation', 'test'],
-                                'Reviews': [int(split_counts.get(name, 0))
-                                            for name in ('train', 'val', 'test')]})
-    st.dataframe(split_table, hide_index=True, width='stretch')
-    st.caption('Labels: 1–2 stars → negative; 3 stars → neutral; 4–5 stars → positive. '
-               'The models are fitted on the training split and evaluated on the test split.')
+        sentiment_chart = (
+            bars.mark_bar(width=60).encode(color=alt.Color('sentiment:N', scale=CLASS_SCALE, legend=None))
+            + bars.transform_calculate(label="format(datum.percent, '.1f') + '%'").mark_text(dy=-8).encode(text='label:N')
+        ).properties(height=280)
+        st.altair_chart(sentiment_chart, width='stretch')
+        st.caption('Most reviews are positive, so neutral is the hard class.')
+    with split_col:
+        st.markdown('#### Train, validation, test')
+        split_table = pd.DataFrame({'Split': ['Train', 'Validation', 'Test'],
+                                    'Reviews': [int(split_counts.get(name, 0)) for name in ('train', 'val', 'test')]})
+        split_table['Share'] = split_table['Reviews'] / split_table['Reviews'].sum()
+        st.dataframe(split_table.style.format({'Reviews': '{:,}', 'Share': '{:.0%}'}),
+                     hide_index=True, width='stretch')
+        st.caption('Every model uses this same split. Models are fit on train and scored on test.')
